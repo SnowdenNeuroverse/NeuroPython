@@ -75,8 +75,8 @@ class Neuro_Data:
                         break
                     else:
                         raise ValueError('Neuroverse error: ' + d['Error'])
-                os.remove(file_path)
             time.sleep(0.25)
+        os.remove(file_path)
         return response_obj['FileName']
 
     def sql_to_csv(self,folder_path=None,file_name=None,sql_query=None):
