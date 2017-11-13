@@ -83,7 +83,7 @@ class Neuro_Data:
         fs=FileShareDestinationDefinition(folder_path)
         tr = TransferFromSqlToFileShareRequest(fs,sql_query)
         output_name=sql_to_file_share(tr)
-        folder=self.home_dir + transfer_from_sql_to_fileshare_request.FileShareDestinationDefinition.FolderPath
+        folder=self.home_dir + fs.FolderPath
         os.rename(folder + output_name, folder + file_name)
         return folder + file_name
 
@@ -91,7 +91,7 @@ class Neuro_Data:
         fs=FileShareDestinationDefinition(None)
         tr = TransferFromSqlToFileShareRequest(fs,sql_query)
         output_name=sql_to_file_share(tr)
-        folder=self.home_dir + transfer_from_sql_to_fileshare_request.FileShareDestinationDefinition.FolderPath
+        folder=self.home_dir + fs.FolderPath
         df = pandas.read_csv(folder + output_name)
         os.remove(folder + output_name)
         return df
