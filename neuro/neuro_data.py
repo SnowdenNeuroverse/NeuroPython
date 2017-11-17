@@ -20,7 +20,7 @@ class Neuro_Data:
             self.JoinClause = JoinClause
 
     def sql_join(self,join_type=None,table_name=None,sub_query=None,alias=None,clause=None):
-        return SqlJoin(join_type,table_name,sub_query,alias,clause)
+        return self.SqlJoin(join_type,table_name,sub_query,alias,clause)
 
     class SqlSourceDefinition:
         def __init__(self, SelectClause, FromTableName, FromSubQuery, FromAlias, Joins, WhereClause, GroupByClause, HavingClause, OrderByClause):
@@ -36,7 +36,7 @@ class Neuro_Data:
             self.OrderByClause = OrderByClause
 
     def sql_query(self,select=None,table_name=None,sub_query=None,alias=None,joins=None,where=None,group_by=None,having=None,order_by=None):
-        return SqlSourceDefinition(select,table_name,sub_query,alias,joins,where,group_by,having,order_by)
+        return self.SqlSourceDefinition(select,table_name,sub_query,alias,joins,where,group_by,having,order_by)
 
     class FileShareDestinationDefinition:
         def __init__(self, FolderPath):
@@ -47,6 +47,8 @@ class Neuro_Data:
                 if FolderPath.startswith("\\"): FolderPath = FolderPath[1:]
                 if (not FolderPath.endswith("/")) or (not FolderPath.endswith("\\")):
                     FolderPath = FolderPath + "/"
+            else:
+                FolderPath = ""
             self.FolderPath = FolderPath
 
     class TransferFromSqlToFileShareRequest:
@@ -80,17 +82,20 @@ class Neuro_Data:
         return response_obj['FileName']
 
     def sql_to_csv(self,folder_path=None,file_name=None,sql_query=None):
-        fs=FileShareDestinationDefinition(folder_path)
-        tr = TransferFromSqlToFileShareRequest(fs,sql_query)
-        output_name=sql_to_file_share(tr)
+        fs=self.FileShareDestinationDefinition(folder_path)
         folder=self.home_dir + fs.FolderPath
+        my_file = Path(folder + file_name)
+        if my_file.is_file():
+            raise ValueError('Error file exists: ' + folder + file_name)
+        tr = self.TransferFromSqlToFileShareRequest(fs,sql_query)
+        output_name=self.sql_to_file_share(tr)
         os.rename(folder + output_name, folder + file_name)
         return folder + file_name
 
     def sql_to_df(self,sql_query=None):
-        fs=FileShareDestinationDefinition(None)
-        tr = TransferFromSqlToFileShareRequest(fs,sql_query)
-        output_name=sql_to_file_share(tr)
+        fs=self.FileShareDestinationDefinition(None)
+        tr = self.TransferFromSqlToFileShareRequest(fs,sql_query)
+        output_name=self.sql_to_file_share(tr)
         folder=self.home_dir + fs.FolderPath
         df = pandas.read_csv(folder + output_name)
         os.remove(folder + output_name)
