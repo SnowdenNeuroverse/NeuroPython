@@ -62,6 +62,11 @@ class Neuro_Data:
         msg_data_length = len(msg_data)
         headers = {'Content-Length' : str(msg_data_length), 'Token' : self.token}
         response = requests.post(url, headers=headers, data=msg_data)
+        if response.status_code != 200:
+            if response.status_code == 401:
+                raise ValueError('Session has expired: Log into Neuroverse and connect to your Notebooks session or reload the Notebooks page in Neuroverse')
+            else:
+                raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
         response_obj = response.json()
         if response_obj['Error'] != None:
             raise ValueError('Neuroverse error: ' + response_obj['Error'])
