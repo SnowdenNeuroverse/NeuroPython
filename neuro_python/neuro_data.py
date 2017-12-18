@@ -68,7 +68,7 @@ class Neuro_Data:
         msg_data = json.dumps(transfer_from_sql_to_fileshare_request, default=lambda o: o.__dict__)
         msg_data_length = len(msg_data)
         headers = {'Content-Length' : str(msg_data_length), 'Token' : self.token}
-        response = requests.post(url, headers=headers, data=msg_data, verify=False)
+        response = requests.post(url, headers=headers, data=msg_data)
         if response.status_code != 200:
             if response.status_code == 401:
                 raise ValueError('Session has expired: Log into Neuroverse and connect to your Notebooks session or reload the Notebooks page in Neuroverse')
