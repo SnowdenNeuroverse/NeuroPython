@@ -8,7 +8,14 @@ import pandas
 class Neuro_Data:
     def __init__(self):
         self.token = os.environ['JUPYTER_TOKEN']
-        self.domain = os.environ['NV_DOMAIN'] + ':8082/NeuroApi/datamovementservice/api/datamovement/'
+        if 'prd' in os.environ['NV_DOMAIN']:
+            self.domain = 'https://neuroverse.com.au' + ':8082/NeuroApi/datamovementservice/api/datamovement/'
+        elif 'tst' in os.environ['NV_DOMAIN']:
+            self.domain = 'https://launchau.snowdenonline.com.au' + ':8082/NeuroApi/datamovementservice/api/datamovement/'
+        elif 'sit' in os.environ['NV_DOMAIN']:
+            self.domain = 'https://neurosit.snowdenonline.com.au' + ':8082/NeuroApi/datamovementservice/api/datamovement/'
+        else:
+            self.domain = 'http://dev-stratos.australiaeast.cloudapp.azure.com' + ':8082/NeuroApi/datamovementservice/api/datamovement/'
         self.home_dir = '/home/jovyan/session/'
 
     class SqlJoin:
