@@ -118,7 +118,7 @@ class Neuro_Data:
         os.remove(folder + output_name)
         return df
 
-    def generate_iot_device_token(self,iot_host=None,iot_device_name=None,iot_device_key=None)
+    def generate_iot_device_token(self,iot_host=None,iot_device_name=None,iot_device_key=None):
         iotHost = iot_host +'%2Fdevices%2F'+iot_device_name
         keyName = iot_device_name
         keyValue = iot_device_key
