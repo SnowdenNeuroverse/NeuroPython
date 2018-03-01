@@ -4,6 +4,11 @@ import os
 from pathlib import Path
 import time
 import pandas
+import base64
+import urllib
+import hmac
+import hashlib
+
 #private classes and methods
 class Neuro_Data:
     def __init__(self):
