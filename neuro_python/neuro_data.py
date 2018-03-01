@@ -112,3 +112,24 @@ class Neuro_Data:
         df = pandas.read_csv(folder + output_name)
         os.remove(folder + output_name)
         return df
+
+    def generate_iot_device_token(self,iot_host=None,iot_device_name=None,iot_device_key=None)
+        iotHost = iot_host +'%2Fdevices%2F'+iot_device_name
+        keyName = iot_device_name
+        keyValue = iot_device_key
+
+        TOKEN_VALID_SECS = 365 * 24 * 60 * 60
+        TOKEN_FORMAT = 'SharedAccessSignature sr=%s&sig=%s&se=%s'
+
+        targetUri = iotHost
+        expiryTime = '%d' % (time.time() + TOKEN_VALID_SECS)
+        toSign = '%s\n%s' % (targetUri, expiryTime)
+        key = base64.b64decode(keyValue.encode('utf-8'))
+        signature = urllib.parse.quote(
+            base64.b64encode(
+                hmac.HMAC(key, toSign.encode('utf-8'), hashlib.sha256).digest()
+                )
+        ).replace('/', '%2F')
+        return TOKEN_FORMAT % (targetUri, signature, expiryTime)
+                                  
+                                  
