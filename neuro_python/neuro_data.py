@@ -14,7 +14,8 @@ class Neuro_Data:
     def __init__(self):
         self.token = os.environ['JUPYTER_TOKEN']
         if 'prd' in os.environ['NV_DOMAIN']:
-            self.domain = 'https://neuroverse.com.au' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
+            #self.domain = 'https://neuroverse.com.au' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
+            self.domain = 'https://15ded47f-ef38-4ee3-b989-685820ca3d36.cloudapp.net' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
         elif 'tst' in os.environ['NV_DOMAIN']:
             self.domain = 'https://launchau.snowdenonline.com.au' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
         elif 'sit' in os.environ['NV_DOMAIN']:
@@ -73,7 +74,7 @@ class Neuro_Data:
         msg_data = json.dumps(transfer_from_sql_to_fileshare_request, default=lambda o: o.__dict__)
         msg_data_length = len(msg_data)
         headers = {'Content-Length' : str(msg_data_length), 'Token' : self.token}
-        response = requests.post(url, headers=headers, data=msg_data)
+        response = requests.post(url, headers=headers, data=msg_data, verify=False)
         if response.status_code != 200:
             if response.status_code == 401:
                 raise ValueError('Session has expired: Log into Neuroverse and connect to your Notebooks session or reload the Notebooks page in Neuroverse')
