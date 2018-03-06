@@ -14,7 +14,7 @@ class Neuro_Data:
     def __init__(self):
         self.token = os.environ['JUPYTER_TOKEN']
         if 'prd' in os.environ['NV_DOMAIN']:
-            #self.domain = 'https://neuroverse.com.au' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
+            #this will need to be updated when the certificate expires
             self.domain = 'https://15ded47f-ef38-4ee3-b989-685820ca3d36.cloudapp.net' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
         elif 'tst' in os.environ['NV_DOMAIN']:
             self.domain = 'https://launchau.snowdenonline.com.au' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
