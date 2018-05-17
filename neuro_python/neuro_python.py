@@ -1,13 +1,6 @@
 import requests
 import json
 import os
-from pathlib import Path
-import time
-import pandas
-import base64
-import urllib
-import hmac
-import hashlib
 
 #private classes and methods
 class Neuro_Python:
@@ -24,9 +17,9 @@ class Neuro_Python:
             self.domain = 'https://neurodev.snowdenonline.com.au'
         self.home_dir = '/home/jovyan/session/'
         
-    def neuro_call(self,port,service,method,requestbody;timeout=1200):
+    def neuro_call(self,port,service,method,requestbody,timeout=1200):
         url = self.domain + ":8080/NeuroApi/" + port + "/" + service + "/api/" + service.lower().replace("service","") + "/" + method
-        msg_data = json.dumps(transfer_from_sql_to_fileshare_request, default=lambda o: o.__dict__)
+        msg_data = json.dumps(requestbody, default=lambda o: o.__dict__)
         msg_data_length = len(msg_data)
         headers = {'Content-Length' : str(msg_data_length), 'Token' : self.token}
         response = requests.post(url, headers=headers, data=msg_data, verify=False)
