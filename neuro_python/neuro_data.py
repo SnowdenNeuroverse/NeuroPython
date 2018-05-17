@@ -52,7 +52,7 @@ class Neuro_Data:
             self.StoreName = StoreName
 
     def sql_to_file_share(self,transfer_from_sql_to_fileshare_request):
-        np=neuro_python.Neuro_Python()
+        np=Neuro_Python()
         response_obj = np.neuro_call("8080","DataMovementService","TransferFromSqlToFileShare",transfer_from_sql_to_fileshare_request)
         if response_obj['Error'] != None:
             raise ValueError('Neuroverse error: ' + response_obj['Error'])
@@ -74,7 +74,7 @@ class Neuro_Data:
 
     def sql_to_csv(self,folder_path=None,file_name=None,sql_query=None,store_name=None):
         fs=self.FileShareDestinationDefinition(folder_path)
-        np=neuro_python.Neuro_Python()
+        np=Neuro_Python()
         folder=np.home_dir + fs.FolderPath
         my_file = Path(folder + file_name)
         if my_file.is_file():
@@ -88,7 +88,7 @@ class Neuro_Data:
         fs=self.FileShareDestinationDefinition(None)
         tr = self.TransferFromSqlToFileShareRequest(fs,sql_query,store_name)
         output_name=self.sql_to_file_share(tr)
-        np=neuro_python.Neuro_Python()
+        np=Neuro_Python()
         folder=np.home_dir + fs.FolderPath
         df = pandas.read_csv(folder + output_name)
         os.remove(folder + output_name)
