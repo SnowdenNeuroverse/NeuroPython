@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import time
 import pandas
+import neuro_python
 
 #private classes and methods
 class Neuro_Data:
