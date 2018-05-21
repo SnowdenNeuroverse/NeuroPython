@@ -74,9 +74,9 @@ class Neuro_Data:
         os.remove(file_path)
         return response_obj['FileName']
 
-    def sql_to_csv(self,folder_path=None,file_name=None,sql_query=None,store_name=None):
-        fs=self.FileShareDestinationDefinition(folder_path)
+    def sql_to_csv(self,folder_path_from_root=None,file_name=None,sql_query=None,store_name=None):
         np=neuro_python.Neuro_Python()
+        fs=self.FileShareDestinationDefinition(folder_path_from_root)
         folder=np.home_dir + fs.FolderPath
         my_file = Path(folder + file_name)
         if my_file.is_file():
