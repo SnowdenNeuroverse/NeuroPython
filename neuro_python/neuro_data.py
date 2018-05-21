@@ -76,6 +76,8 @@ class Neuro_Data:
 
     def sql_to_csv(self,folder_path_from_root=None,file_name=None,sql_query=None,store_name=None):
         np=neuro_python.Neuro_Python()
+        if folder_path_from_root==None:
+            folder_path_from_root=(os.getcwd()+"/").replace(np.home_dir,"")
         fs=self.FileShareDestinationDefinition(folder_path_from_root)
         folder=np.home_dir + fs.FolderPath
         my_file = Path(folder + file_name)
