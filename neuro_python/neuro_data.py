@@ -1,29 +1,12 @@
-import requests
-import json
 import os
+import json
 from pathlib import Path
 import time
 import pandas
-import base64
-import urllib
-import hmac
-import hashlib
+import neuro_python
 
 #private classes and methods
 class Neuro_Data:
-    def __init__(self):
-        self.token = os.environ['JUPYTER_TOKEN']
-        if 'prd' in os.environ['NV_DOMAIN']:
-            #this will need to be updated when the certificate expires
-            self.domain = 'https://15ded47f-ef38-4ee3-b989-685820ca3d36.cloudapp.net' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
-        elif 'tst' in os.environ['NV_DOMAIN']:
-            self.domain = 'https://launchau.snowdenonline.com.au' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
-        elif 'sit' in os.environ['NV_DOMAIN']:
-            self.domain = 'https://neurosit.snowdenonline.com.au' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
-        else:
-            self.domain = 'https://neurodev.snowdenonline.com.au' + ':8080/NeuroApi/datamovementservice/api/datamovement/'
-        self.home_dir = '/home/jovyan/session/'
-
     class SqlJoin:
         def __init__(self, JoinType, JoinTableName, JoinSubQuery, JoinAlias, JoinClause):
             self.JoinType = JoinType
@@ -65,25 +48,17 @@ class Neuro_Data:
             self.FolderPath = FolderPath
 
     class TransferFromSqlToFileShareRequest:
-        def __init__(self, FileShareDestinationDefinition, SqlSourceDefinition):
+        def __init__(self, FileShareDestinationDefinition, SqlSourceDefinition, StoreName):
             self.FileShareDestinationDefinition = FileShareDestinationDefinition
             self.SqlSourceDefinition = SqlSourceDefinition
+            self.StoreName = StoreName
 
     def sql_to_file_share(self,transfer_from_sql_to_fileshare_request):
-        url = self.domain + 'TransferFromSqlToFileShare'
-        msg_data = json.dumps(transfer_from_sql_to_fileshare_request, default=lambda o: o.__dict__)
-        msg_data_length = len(msg_data)
-        headers = {'Content-Length' : str(msg_data_length), 'Token' : self.token}
-        response = requests.post(url, headers=headers, data=msg_data, verify=False)
-        if response.status_code != 200:
-            if response.status_code == 401:
-                raise ValueError('Session has expired: Log into Neuroverse and connect to your Notebooks session or reload the Notebooks page in Neuroverse')
-            else:
-                raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
-        response_obj = response.json()
+        np=neuro_python.Neuro_Python()
+        response_obj = np.neuro_call("8080","DataMovementService","TransferFromSqlToFileShare",transfer_from_sql_to_fileshare_request)
         if response_obj['Error'] != None:
             raise ValueError('Neuroverse error: ' + response_obj['Error'])
-        file_path = self.home_dir + transfer_from_sql_to_fileshare_request.FileShareDestinationDefinition.FolderPath
+        file_path = np.home_dir + transfer_from_sql_to_fileshare_request.FileShareDestinationDefinition.FolderPath
         file_path = file_path + response_obj['FileName'] +'.info'
         my_file = Path(file_path)
         while 1==1:
@@ -99,43 +74,26 @@ class Neuro_Data:
         os.remove(file_path)
         return response_obj['FileName']
 
-    def sql_to_csv(self,folder_path=None,file_name=None,sql_query=None):
-        fs=self.FileShareDestinationDefinition(folder_path)
-        folder=self.home_dir + fs.FolderPath
+    def sql_to_csv(self,folder_path_from_root=None,file_name=None,sql_query=None,store_name=None):
+        np=neuro_python.Neuro_Python()
+        if folder_path_from_root==None:
+            folder_path_from_root=(os.getcwd()+"/").replace(np.home_dir,"")
+        fs=self.FileShareDestinationDefinition(folder_path_from_root)
+        folder=np.home_dir + fs.FolderPath
         my_file = Path(folder + file_name)
         if my_file.is_file():
             raise ValueError('Error file exists: ' + folder + file_name)
-        tr = self.TransferFromSqlToFileShareRequest(fs,sql_query)
+        tr = self.TransferFromSqlToFileShareRequest(fs,sql_query,store_name)
         output_name=self.sql_to_file_share(tr)
         os.rename(folder + output_name, folder + file_name)
         return folder + file_name
 
-    def sql_to_df(self,sql_query=None):
+    def sql_to_df(self,sql_query=None,store_name=None):
         fs=self.FileShareDestinationDefinition(None)
-        tr = self.TransferFromSqlToFileShareRequest(fs,sql_query)
+        tr = self.TransferFromSqlToFileShareRequest(fs,sql_query,store_name)
         output_name=self.sql_to_file_share(tr)
-        folder=self.home_dir + fs.FolderPath
+        np=neuro_python.Neuro_Python()
+        folder=np.home_dir + fs.FolderPath
         df = pandas.read_csv(folder + output_name)
         os.remove(folder + output_name)
         return df
-
-    def generate_iot_device_token(self,iot_host=None,iot_device_name=None,iot_device_key=None):
-        iotHost = iot_host +'%2Fdevices%2F'+iot_device_name
-        keyName = iot_device_name
-        keyValue = iot_device_key
-
-        TOKEN_VALID_SECS = 365 * 24 * 60 * 60
-        TOKEN_FORMAT = 'SharedAccessSignature sr=%s&sig=%s&se=%s'
-
-        targetUri = iotHost
-        expiryTime = '%d' % (time.time() + TOKEN_VALID_SECS)
-        toSign = '%s\n%s' % (targetUri, expiryTime)
-        key = base64.b64decode(keyValue.encode('utf-8'))
-        signature = urllib.parse.quote(
-            base64.b64encode(
-                hmac.HMAC(key, toSign.encode('utf-8'), hashlib.sha256).digest()
-                )
-        ).replace('/', '%2F')
-        return TOKEN_FORMAT % (targetUri, signature, expiryTime)
-                                  
-                                  
