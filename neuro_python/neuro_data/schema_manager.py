@@ -45,7 +45,8 @@ def column_definition(name: str, column_data_type: str, column_type: str, is_req
         data_type_size = int(column_data_type.split('(')[1].strip(')'))
     elif "Decimal" in column_data_type:
         data_type = DATA_TYPE_MAP["Decimal"]
-        data_type_precision,data_type_scale = list(map(int, column_data_type.split('(')[1].strip(')').split(',')))
+        data_type_precision,data_type_scale = list(map(int, column_data_type.
+                                                       split('(')[1].strip(')').split(',')))
     else:
         data_type = DATA_TYPE_MAP[column_data_type]
 
@@ -57,7 +58,7 @@ def column_definition(name: str, column_data_type: str, column_type: str, is_req
             "ForeignKeyTableName" : foreign_key_table_name}
 
 def table_definition(name: str, columns: "List[table_column]", allow_data_changes: bool, schema_type: str,
-          table_indexes: "List[table_index]", partition_path: str):
+                     table_indexes: "List[table_index]", partition_path: str):
     """
     Object to create a Neuroverse data store table
     """
@@ -83,14 +84,14 @@ def table_definition(name: str, columns: "List[table_column]", allow_data_change
             "FilePath" : partition_path}
 
 def sql_table_definition(name: str, columns: "List[table_column]", allow_data_changes: bool, schema_type: str,
-              table_indexes: "List[table_index]"):
+                         table_indexes: "List[table_index]"):
     """
     Object to create a Neuroverse data store sql table
     """
     return table_definition(name, columns, allow_data_changes, schema_type, table_indexes, "")
 
 def datalake_table_definition(name: str, columns: "List[table_column]", schema_type: str,
-                   partition_path: str):
+                              partition_path: str):
     """
     Object to create a Neuroverse data store datalake table
     """
