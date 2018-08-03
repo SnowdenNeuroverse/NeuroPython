@@ -13,10 +13,12 @@ class Neuro_Python:
             self.domain = 'https://launchau.snowdenonline.com.au'
         elif 'sit' in os.environ['NV_DOMAIN']:
             self.domain = 'https://neurosit.snowdenonline.com.au'
-        else:
+        elif 'sit' in os.environ['NV_DOMAIN']:
             self.domain = 'https://neurodev.snowdenonline.com.au'
+        else:
+            self.domain = 'http://localhost'
         self.home_dir = '/home/jovyan/session/'
-        
+
     def neuro_call(self,port,service,method,requestbody,timeout=1200):
         url = self.domain + ":8080/NeuroApi/" + port + "/" + service + "/api/" + service.lower().replace("service","") + "/" + method
         msg_data = json.dumps(requestbody, default=lambda o: o.__dict__)
