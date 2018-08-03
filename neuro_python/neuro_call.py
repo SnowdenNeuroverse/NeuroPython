@@ -12,7 +12,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200):
     token = os.environ['JUPYTER_TOKEN']
     if 'prd' in os.environ['NV_DOMAIN']:
         #this will need to be updated when the certificate expires
-        domain = 'https://neuroverse.com.au'
+        domain = os.environ['NV_DOMAIN']
     elif 'tst' in os.environ['NV_DOMAIN']:
         domain = 'https://launchau.snowdenonline.com.au'
     elif 'sit' in os.environ['NV_DOMAIN']:
