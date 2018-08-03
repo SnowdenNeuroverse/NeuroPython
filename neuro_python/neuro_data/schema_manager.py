@@ -97,11 +97,11 @@ def datalake_table_definition(name: str, columns: "List[table_column]", schema_t
     """
     return table_definition(name, columns, False, schema_type, [], partition_path)
 
-def create_table(storename: str, table_definition: "table_definition"):
+def create_table(store_name: str, table_definition: "table_definition"):
     data_store_id = ""
     try:
-        data_store_id = neuro_call("80","datastoremanager","GetDataStores",{"StoreName" : storename})["DataStores"][1]["DataStoreId"]
+        data_store_id = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"][0]["DataStoreId"]
     except:
         raise Exception("Data Store name is not valid")
     table_definition["DataStoreId"] = data_store_id
-    neuro_call("8080","datapopulationservice","CreateDestinationTableDefinition",table_definition)
+    neuro_call("8080", "datapopulationservice", "CreateDestinationTableDefinition", table_definition)
