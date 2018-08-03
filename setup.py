@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='neuro_python',
-      packages=['neuro_python'])
+      packages=find_packages())
