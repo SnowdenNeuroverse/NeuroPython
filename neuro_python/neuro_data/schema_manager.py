@@ -12,6 +12,7 @@ DATA_TYPE_MAP = {"Int" : 11, "Decimal" : 9, "String" : 14, "BigInt" : 1, "Boolea
 COL_TYPE_MAP = {"Key" : 1, "Value" : 4, "TimeStampKey" : 3, "ForeignKey" : 2}
 SCHEMA_TYPE_MAP = {"DataIngestion" : 1, "TimeSeries" : 2, "Processed" : 3}
 
+
 def index_definition(index_name: str, index_columns: typing.List[str]):
     """
     Object to create Sql table indexes in Neuroverse
@@ -20,6 +21,7 @@ def index_definition(index_name: str, index_columns: typing.List[str]):
     for col in index_columns:
         columns.append({"ColumnName" : col})
     return {"IndexName" : index_name, "IndexColumns" : columns}
+
 
 def column_definition(name: str, column_data_type: str, column_type: str, is_required: bool):
     """
