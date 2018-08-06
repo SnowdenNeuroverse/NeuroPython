@@ -4,6 +4,7 @@ Schema Manager in Neuroverse
 """
 
 import typing
+import json
 from neuro_python.neuro_call import neuro_call
 
 DATA_TYPE_MAP = {"Int" : 11, "Decimal" : 9, "String" : 14, "BigInt" : 1, "Boolean" : 3,
@@ -99,11 +100,82 @@ def datalake_table_definition(name: str, columns: "List[table_column]", schema_t
     """
     return table_definition(name, columns, False, schema_type, [], partition_path)
 
-def create_table(store_name: str, table_definition: "table_definition"):
+def create_table(store_name: str, table_def: "table_definition"):
+    """
+    Create a table in a Neuroverse data store
+    """
     data_store_id = ""
     try:
         data_store_id = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"][0]["DataStoreId"]
     except:
         raise Exception("Data Store name is not valid")
-    table_definition["DataStoreId"] = data_store_id
-    neuro_call("8080", "datapopulationservice", "CreateDestinationTableDefinition", table_definition)
+    table_def["DataStoreId"] = data_store_id
+    neuro_call("8080", "datapopulationservice", "CreateDestinationTableDefinition", table_def)
+
+def get_table_definition(store_name: str, table_name: str):
+    """
+    Get an existing table definition for a table in a Neuroverse data store
+    """
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
+    if len(data_stores) < 1:
+        raise Exception("Data store doesn't exist")
+
+    data_store_id = data_stores[0]["DataStoreId"]
+    table_def = neuro_call("8080", "DataPopulationService", "GetDestinationTableDefinition", {"TableName" : table_name, "DataStoreId" : data_store_id})
+    if len(table_def["DestinationTableDefinitions"]) == 0:
+        raise Exception("Table doesn't exist")
+
+    return table_def["DestinationTableDefinitions"][0]
+
+def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[table_index]"):
+    """
+    Add indexes to a table in a Neuroverse SQL data store
+    """
+    table_def = get_table_definition(store_name, table_name)
+    table_def["DestinationTableDefinitionIndexes"].append(table_indexes)
+    neuro_call("8080", "datapopulationservice", "UpdateDestinationTableDefinition", table_def)
+
+def save_table_definition(file_name: str, table_def: "table_definition"):
+    """
+    Save a table definintion to a file
+    """
+    json_data = json.dumps(table_def, default=lambda o: o.__dict__)
+    def_file = open(file_name, "w+")
+    def_file.write(json_data)
+    def_file.close()
+
+def load_table_definition(file_name: str):
+    """
+    Load a table definition from a file
+    """
+    return json.loads(open(file_name).read())
+
+def create_table_to_stream_mapping(store_name: str, table_name: str, mapping_name: str,
+                                   source_dest_name_pairs: "List[tuple]"):
+    """
+    Creates a mapping between a stream job and a data store table in Neuroverse
+    """
+    table_def = get_table_definition(store_name, table_name)
+    table_columns = table_def["DestinationTableDefinitions"][0]["DestinationTableDefinitionColumns"]
+    column_pairs = []
+    for pair in source_dest_name_pairs:
+        col_def = next(i for i in table_columns if i["ColumnName"] == pair[1])
+        column_pairs.append({"DestinationColumnInfo" : col_def,
+                             "SourceColumnName" : pair[0],
+                             "DestinationColumnName" : pair[1],
+                             "IsMapped" : True})
+
+    neuro_call("8080", "datapopulationservice", "CreateDataPopulationMapping",
+               {"DestinationTableDefinitionId" : table_def["DestinationTableDefinitionId"],
+                "MappingName" : mapping_name,
+                "DataPopulationMappingSourceColumns" : column_pairs})
+
+def delete_processed_table(store_name: str, table_name: str):
+    """
+    Delete a table with schema type "Processed" from a Neuroverse data store
+    """
+    table_def = get_table_definition(store_name, table_name)
+    if table_def["SchemaType"] != 3:
+        raise Exception("Table schema type is not processed")
+    neuro_call("8080", "datapopulationservice", "DeleteDestinationTableDefinition",
+               {"DestinationTableDefinitionId" : table_def["DestinationTableDefinitionId"]})
