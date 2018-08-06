@@ -126,7 +126,7 @@ def get_table_definition(store_name: str, table_name: str):
 
     return table_def["DestinationTableDefinitions"][0]
 
-def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[table_index]"):
+def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
     """
     Add indexes to a table in a Neuroverse SQL data store
     """
@@ -155,7 +155,7 @@ def create_table_to_stream_mapping(store_name: str, table_name: str, mapping_nam
     Creates a mapping between a stream job and a data store table in Neuroverse
     """
     table_def = get_table_definition(store_name, table_name)
-    table_columns = table_def["DestinationTableDefinitions"][0]["DestinationTableDefinitionColumns"]
+    table_columns = table_def["DestinationTableDefinitionColumns"]
     column_pairs = []
     for pair in source_dest_name_pairs:
         col_def = next(i for i in table_columns if i["ColumnName"] == pair[1])
