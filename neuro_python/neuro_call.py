@@ -30,7 +30,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200):
     msg_data = json.dumps(requestbody, default=lambda o: o.__dict__)
     msg_data_length = len(msg_data)
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
-    response = requests.post(url, headers=headers, data=msg_data,
+    response = requests.post(url, headers=headers, data=msg_data, verify=False,
                              timeout=timeout)
     if response.status_code != 200:
         if response.status_code == 401:
