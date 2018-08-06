@@ -157,7 +157,8 @@ def create_stream_to_table_mapping(store_name: str, table_name: str, mapping_nam
     table_columns = table_def["DestinationTableDefinitionColumns"]
 
     for col in table_columns:
-        if len(filter(lambda x: x[1] == col["ColumnName"], source_dest_name_pairs)) == 0:
+
+        if len([x for x in source_dest_name_pairs if x[1] == col["ColumnName"]]) == 0:
             if col["IsRequired"]:
                 raise Exception(col["ColumnName"] + " is a required column, please supply a mapping")
 
