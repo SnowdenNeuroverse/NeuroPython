@@ -28,7 +28,6 @@ def column_definition(name: str, column_data_type: str, column_type: str = "Valu
     """
     Object to create a column in a Neuroverse data store table
     """
-
     foreign_key_table_name = None
     foreign_key_column_name = None
     col_type_id = None
