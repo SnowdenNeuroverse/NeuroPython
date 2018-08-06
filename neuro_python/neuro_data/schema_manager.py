@@ -86,20 +86,6 @@ def table_definition(name: str, columns: "List[table_column]", schema_type: str,
             "DestinationTableName" : name, "DataStoreId" : None, "SchemaType" : schema_type_id,
             "FilePath" : partition_path}
 
-def sql_table_definition(name: str, columns: "List[table_column]", allow_data_changes: bool, schema_type: str,
-                         table_indexes: "List[index_definition]"):
-    """
-    Object to create a Neuroverse data store sql table
-    """
-    return table_definition(name, columns, allow_data_changes, schema_type, table_indexes, "")
-
-def datalake_table_definition(name: str, columns: "List[table_column]", schema_type: str,
-                              partition_path: str):
-    """
-    Object to create a Neuroverse data store datalake table
-    """
-    return table_definition(name, columns, False, schema_type, [], partition_path)
-
 def create_table(store_name: str, table_def: "table_definition"):
     """
     Create a table in a Neuroverse data store
