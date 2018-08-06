@@ -148,13 +148,19 @@ def load_table_definition(file_name: str):
     """
     return json.loads(open(file_name).read())
 
-def create_table_to_stream_mapping(store_name: str, table_name: str, mapping_name: str,
+def create_stream_to_table_mapping(store_name: str, table_name: str, mapping_name: str,
                                    source_dest_name_pairs: "List[tuple]"):
     """
     Creates a mapping between a stream job and a data store table in Neuroverse
     """
     table_def = get_table_definition(store_name, table_name)
     table_columns = table_def["DestinationTableDefinitionColumns"]
+
+    for col in table_columns:
+        if len(filter(lambda x: x[1] == col["ColumnName"], source_dest_name_pairs)) == 0:
+            if col["IsRequired"]:
+                raise Exception(col["ColumnName"] + " is a required column, please supply a mapping")
+
     column_pairs = []
     for pair in source_dest_name_pairs:
         col_def = next(i for i in table_columns if i["ColumnName"] == pair[1])
