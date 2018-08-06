@@ -104,12 +104,11 @@ def create_table(store_name: str, table_def: "table_definition"):
     """
     Create a table in a Neuroverse data store
     """
-    data_store_id = ""
-    try:
-        data_store_id = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"][0]["DataStoreId"]
-    except:
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})
+    if len(data_stores["DataStores"]) == 0:
         raise Exception("Data Store name is not valid")
-    table_def["DataStoreId"] = data_store_id
+
+    table_def["DataStoreId"] = data_stores["DataStores"][0]["DataStoreId"]
     neuro_call("8080", "datapopulationservice", "CreateDestinationTableDefinition", table_def)
 
 def get_table_definition(store_name: str, table_name: str):
@@ -117,11 +116,10 @@ def get_table_definition(store_name: str, table_name: str):
     Get an existing table definition for a table in a Neuroverse data store
     """
     data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
-    if len(data_stores) < 1:
+    if len(data_stores) == 0:
         raise Exception("Data store doesn't exist")
 
-    data_store_id = data_stores[0]["DataStoreId"]
-    table_def = neuro_call("8080", "DataPopulationService", "GetDestinationTableDefinition", {"TableName" : table_name, "DataStoreId" : data_store_id})
+    table_def = neuro_call("8080", "DataPopulationService", "GetDestinationTableDefinition", {"TableName" : table_name, "DataStoreId" : data_stores[0]["DataStoreId"]})
     if len(table_def["DestinationTableDefinitions"]) == 0:
         raise Exception("Table doesn't exist")
 
