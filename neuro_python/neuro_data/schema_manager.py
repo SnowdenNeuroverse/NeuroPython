@@ -14,17 +14,17 @@ COL_TYPE_MAP = {"Key" : 1, "Value" : 4, "TimeStampKey" : 3, "ForeignKey" : 2}
 SCHEMA_TYPE_MAP = {"DataIngestion" : 1, "TimeSeries" : 2, "Processed" : 3}
 
 
-def index_definition(index_name: str, index_columns: typing.List[str]):
+def index_definition(index_name: str, index_column_names: typing.List[str]):
     """
     Object to create Sql table indexes in Neuroverse
     """
     columns = []
-    for col in index_columns:
+    for col in index_column_names:
         columns.append({"ColumnName" : col})
     return {"IndexName" : index_name, "IndexColumns" : columns}
 
 
-def column_definition(name: str, column_data_type: str, column_type: str, is_required: bool):
+def column_definition(name: str, column_type: str, column_data_type: str = "Value", is_required: bool = True):
     """
     Object to create a column in a Neuroverse data store table
     """
@@ -60,8 +60,9 @@ def column_definition(name: str, column_data_type: str, column_type: str, is_req
             "ColumnDataTypeScale" : data_type_scale, "ColumnDataTypeSize" : data_type_size,
             "ForeignKeyTableName" : foreign_key_table_name}
 
-def table_definition(name: str, columns: "List[table_column]", allow_data_changes: bool, schema_type: str,
-                     table_indexes: "List[table_index]", partition_path: str):
+def table_definition(name: str, columns: "List[table_column]", schema_type: str,
+                     allow_data_changes: bool = False, table_indexes: "List[index_definition]" = [],
+                     partition_path: str = ""):
     """
     Object to create a Neuroverse data store table
     """
@@ -87,7 +88,7 @@ def table_definition(name: str, columns: "List[table_column]", allow_data_change
             "FilePath" : partition_path}
 
 def sql_table_definition(name: str, columns: "List[table_column]", allow_data_changes: bool, schema_type: str,
-                         table_indexes: "List[table_index]"):
+                         table_indexes: "List[index_definition]"):
     """
     Object to create a Neuroverse data store sql table
     """
