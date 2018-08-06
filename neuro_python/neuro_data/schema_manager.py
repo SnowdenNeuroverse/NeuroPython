@@ -94,6 +94,10 @@ def create_table(store_name: str, table_def: "table_definition"):
     if len(data_stores["DataStores"]) == 0:
         raise Exception("Data Store name is not valid")
 
+    last_mod_col = [x for x in table_def["DestinationTableDefinitionColumns"] if x["ColumnName"] == "NeuroverseLastModified"]
+    if len(last_mod_col) > 0:
+        table_def["DestinationTableDefinitionColumns"].remove(last_mod_col[0])
+
     table_def["DataStoreId"] = data_stores["DataStores"][0]["DataStoreId"]
     neuro_call("8080", "datapopulationservice", "CreateDestinationTableDefinition", table_def)
 
