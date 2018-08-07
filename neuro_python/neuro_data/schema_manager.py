@@ -19,11 +19,11 @@ def get_column_data_types():
 
 def get_column_types():
     "Get available column types in Neuroverse tabular data"
-    return COL_TYPE_MAP.keys()
+    return list(COL_TYPE_MAP.keys())
 
 def get_schema_types():
     "Get available schema types for Neuroverse tabular data"
-    return SCHEMA_TYPE_MAP.keys()
+    return list(SCHEMA_TYPE_MAP.keys())
 
 def index_definition(index_name: str, index_column_names: typing.List[str]):
     """
