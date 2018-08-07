@@ -108,6 +108,7 @@ def get_table_definition(store_name: str, table_name: str):
     if len(table_defs["DestinationTableDefinitions"]) == 0:
         raise Exception("Table doesn't exist")
     table_def = table_defs["DestinationTableDefinitions"][0]
+    """
     columns = []
     for col in table_def["DestinationTableDefinitionColumns"]:
         if col["ColumnName"] != "NeuroverseLastModified":
@@ -131,6 +132,11 @@ def get_table_definition(store_name: str, table_name: str):
     partition_path = '/'.join(path_list[5:len(path_list)])
 
     return table_definition(table_name,columns,schema_type,allow_data_changes,partition_path)
+    """
+
+    table_def["DestinationTableDefinitionIndexes"] = []
+
+    return table_def
 
 def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
     """
