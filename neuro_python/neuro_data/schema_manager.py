@@ -104,10 +104,10 @@ def get_table_definition(store_name: str, table_name: str):
     if len(data_stores) == 0:
         raise Exception("Data store doesn't exist")
 
-    table_def = neuro_call("8080", "DataPopulationService", "GetDestinationTableDefinition", {"TableName" : table_name, "DataStoreId" : data_stores[0]["DataStoreId"]})
-    if len(table_def["DestinationTableDefinitions"]) == 0:
+    table_defs = neuro_call("8080", "DataPopulationService", "GetDestinationTableDefinition", {"TableName" : table_name, "DataStoreId" : data_stores[0]["DataStoreId"]})
+    if len(table_defs["DestinationTableDefinitions"]) == 0:
         raise Exception("Table doesn't exist")
-
+    table_def = table_defs["DestinationTableDefinitions"][0]
     columns = []
     for col in table_def["DestinationTableDefinitionColumns"]:
         if col["ColumnName"] != "NeuroverseLastModified":
