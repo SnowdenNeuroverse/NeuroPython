@@ -13,6 +13,17 @@ DATA_TYPE_MAP = {"Int" : 11, "Decimal" : 9, "String" : 14, "BigInt" : 1, "Boolea
 COL_TYPE_MAP = {"Key" : 1, "Value" : 4, "TimeStampKey" : 3, "ForeignKey" : 2}
 SCHEMA_TYPE_MAP = {"DataIngestion" : 1, "TimeSeries" : 2, "Processed" : 3}
 
+def get_column_data_types():
+    "Get available data types for columns in Neuroverse tabular data"
+    return ["Boolean", "Int32", "Int64", "Decimal", "Double", "DateTime", "Guid", "String"]
+
+def get_column_types():
+    "Get available column types in Neuroverse tabular data"
+    return COL_TYPE_MAP.keys()
+
+def get_schema_types():
+    "Get available schema types for Neuroverse tabular data"
+    return SCHEMA_TYPE_MAP.keys()
 
 def index_definition(index_name: str, index_column_names: typing.List[str]):
     """
