@@ -60,8 +60,7 @@ def column_definition(name: str, column_data_type: str, column_type: str = "Valu
             "ForeignKeyTableName" : foreign_key_table_name}
 
 def table_definition(name: str, columns: "List[table_column]", schema_type: str,
-                     allow_data_changes: bool = False, table_indexes: "List[index_definition]" = [],
-                     partition_path: str = ""):
+                     allow_data_changes: bool = False, partition_path: str = ""):
     """
     Object to create a Neuroverse data store table
     """
@@ -82,7 +81,7 @@ def table_definition(name: str, columns: "List[table_column]", schema_type: str,
 
     return {"DestinationTableDefinitionId" : "", "AllowDataLossChanges" : allow_data_changes,
             "DestinationTableDefinitionColumns" : columns,
-            "DestinationTableDefinitionIndexes" : table_indexes,
+            "DestinationTableDefinitionIndexes" : [],
             "DestinationTableName" : name, "DataStoreId" : None, "SchemaType" : schema_type_id,
             "FilePath" : partition_path}
 
@@ -93,10 +92,6 @@ def create_table(store_name: str, table_def: "table_definition"):
     data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})
     if len(data_stores["DataStores"]) == 0:
         raise Exception("Data Store name is not valid")
-
-    last_mod_col = [x for x in table_def["DestinationTableDefinitionColumns"] if x["ColumnName"] == "NeuroverseLastModified"]
-    if len(last_mod_col) > 0:
-        table_def["DestinationTableDefinitionColumns"].remove(last_mod_col[0])
 
     table_def["DataStoreId"] = data_stores["DataStores"][0]["DataStoreId"]
     neuro_call("8080", "datapopulationservice", "CreateDestinationTableDefinition", table_def)
@@ -113,7 +108,29 @@ def get_table_definition(store_name: str, table_name: str):
     if len(table_def["DestinationTableDefinitions"]) == 0:
         raise Exception("Table doesn't exist")
 
-    return table_def["DestinationTableDefinitions"][0]
+    columns = []
+    for col in table_def["DestinationTableDefinitionColumns"]:
+        if col["ColumnName"] != "NeuroverseLastModified":
+            column_name = col["ColumnName"]
+            column_type = list(COL_TYPE_MAP.keys())[list(COL_TYPE_MAP.values()).index(col["ColumnType"])]
+            if "ForeignKey" in column_type:
+                column_type += "(" + col["ForeignKeyTableName"] + "," + col["ForeignKeyColumnName"] + ")"
+            column_data_type = list(DATA_TYPE_MAP.keys())[list(DATA_TYPE_MAP.values()).index(col["ColumnDataType"])]
+            if "String" in column_data_type:
+                column_data_type += "(" + col["ColumnDataTypeSize"] + ")"
+            elif "Decimal" in column_data_type:
+                column_data_type += "(" + col["ColumnDataTypePrecision"] + "," + col["ColumnDataTypeScale"] +")"
+            is_required = col["IsRequired"]
+            columns.append(column_definition(column_name, column_data_type, column_type, is_required))
+    schema_type = list(SCHEMA_TYPE_MAP.keys())[list(SCHEMA_TYPE_MAP.values()).index(table_def["SchemaType"])]
+    allow_data_changes = table_def["AllowDataLossChanges"]
+
+    table_indexes = []
+
+    path_list = table_def["FilePath"].split('/')
+    partition_path = '/'.join(path_list[5:len(path_list)])
+
+    return table_definition(table_name,columns,schema_type,allow_data_changes,partition_path)
 
 def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
     """
