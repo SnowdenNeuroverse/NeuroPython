@@ -17,10 +17,10 @@ def sinktosource(sink, response):
                                                         sink["Types"], sink["DataStartRow"])
     elif sink["Type"] == "CsvDataLake":
         file_name_including_partition = sink["FolderPath"] + "/" + response["JobId"]
-        file_name_including_partition += "_" + response["TimeStamp"].replace(":","-").replace(".","-")
+        file_name_including_partition += "_" + response["TimeStamp"].replace(":", "-").replace(".", "-")
         file_name_including_partition += ".csv"
         file_name_including_partition = file_name_including_partition.split(sink["TableName"].lower())[1]
-        return csv_datalake_source_parameters(sink["DataStoreName"], sink["TableName"],file_name_including_partition,
+        return csv_datalake_source_parameters(sink["DataStoreName"], sink["TableName"], file_name_including_partition,
                                               1)
     else:
         raise Exception("Sink type: " + sink["Type"] + " not supported")
@@ -53,7 +53,7 @@ def csv_notebook_fileshare_source_parameters(file_name: str, headers: "List[str]
     if not os.path.isfile(file_name):
         raise Exception("File doesn't exist")
 
-    file_name = (os.getcwd().replace(home_directory(),"") + "/" + file_name).strip('/')
+    file_name = (os.getcwd().replace(home_directory(), "") + "/" + file_name).strip('/')
 
     return {"Type" : "CsvNotebookFileShare", "FileName" : file_name,
             "Headers" : headers, "Types" : column_data_types, "DataStartRow" : data_start_row}
