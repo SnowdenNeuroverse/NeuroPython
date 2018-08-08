@@ -69,6 +69,7 @@ def csv_notebook_fileshare_sink_parameters(file_name: str, headers: "List[str]",
     where_clause: a clause to determine whether a row is streamed. Column names can be used to access to the value of the column on that row.
     ROW and RANDOM are available for use in the where_clause.
     """
+    file_name = (os.getcwd().replace(home_directory(), "") + "/" + file_name).strip('/')
     return {"Type" : "CsvNotebookFileShare", "FileName" : file_name, "Headers" : headers,
             "Types" : column_data_types, "Expressions" : expressions, "WhereClause" : where_clause}
 
