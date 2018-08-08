@@ -1,5 +1,5 @@
 """
-Helper commands for the datalake
+Helper commands for a datalake
 """
 
 import time

@@ -8,3 +8,4 @@ from neuro_python.neuro_data import schema_manager as sm
 from neuro_python.neuro_data import stream_table as st
 from neuro_python.neuro_data import source_sink as ss
 from neuro_python.neuro_data import datalake_commands as dc
+from neuro_python.neuro_data import sql_query as sq
