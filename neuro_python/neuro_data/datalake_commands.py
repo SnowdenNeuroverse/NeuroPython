@@ -87,7 +87,7 @@ def rechunk_datalake_csv(store_name: str, from_table_name: str, file_name_includ
     file_path = file_path.lower()
     file_path += file_name_including_partition.strip('/')
 
-    request = {"DataStoreName" : store_name, "FromTableName" : from_table_name,
+    request = {"FromDataStoreName" : store_name, "FromTableName" : from_table_name,
                "FilePath" : file_path, "ToTableName" : to_table_name}
     response = neuro_call("80", "DataMovementService", "DataLakeReChunkCsvFile", request)
 
