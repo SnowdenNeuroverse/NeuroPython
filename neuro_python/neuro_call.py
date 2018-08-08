@@ -4,6 +4,7 @@ The neuro_call model contains the neuro_call function
 import os
 import json
 import requests
+import urllib3
 
 def neuro_call(port, service, method, requestbody, timeout=1200):
     """
@@ -30,6 +31,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200):
     msg_data = json.dumps(requestbody, default=lambda o: o.__dict__)
     msg_data_length = len(msg_data)
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
+    urllib3.disable_warnings()
     response = requests.post(url, headers=headers, data=msg_data, verify=False,
                              timeout=timeout)
     if response.status_code != 200:
