@@ -111,7 +111,7 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
             column_type = list(COL_TYPE_MAP.keys())[list(COL_TYPE_MAP.values()).index(col["ColumnType"])]
             if "ForeignKey" in column_type:
                 column_type += "(" + col["ForeignKeyTableName"] + "," + col["ForeignKeyColumnName"] + ")"
-            column_data_type = list(DATA_TYPE_MAP.keys())[list(DATA_TYPE_MAP.values()).index(col["ColumnDataType"])]
+            column_data_type = str(list(DATA_TYPE_MAP.keys())[list(DATA_TYPE_MAP.values()).index(col["ColumnDataType"])])
             if "String" in column_data_type:
                 column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
             elif "Decimal" in column_data_type:
