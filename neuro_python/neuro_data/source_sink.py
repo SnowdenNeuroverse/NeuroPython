@@ -95,6 +95,6 @@ def csv_datalake_sink_parameters(store_name: str, table_name: str, partition_pat
     table_def = sm.get_table_definition(store_name, table_name)
     schema_type = list(sm.SCHEMA_TYPE_MAP.keys())[list(sm.SCHEMA_TYPE_MAP.values()).index(table_def["SchemaType"])]
     folder_path = "/managed/" + schema_type + "/table/" + table_name + "/" + partition_path.strip('/')
-    file_path = file_path.lower()
+    folder_path = folder_path.lower()
     return {"Type" : "CsvDataLake", "DataStoreName" : store_name, "TableName" : table_name, "FolderPath" : folder_path,
             "Expressions" : expressions, "WhereClause" : where_clause}
