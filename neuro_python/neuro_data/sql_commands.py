@@ -88,7 +88,7 @@ def sql_to_csv(store_name: str, sql_query: "sql_query", file_name: str):
 
 def sql_to_df(store_name: str, sql_query: "sql_query"):
     """
-    Execute a sql query and have the result put into a dataframe in the notebook
+    Execute a sql query and have the result put into a pandas dataframe in the notebook
     """
     if not os.path.exists(home_directory()+"/tmp"):
         os.makedirs(home_directory()+"/tmp")
