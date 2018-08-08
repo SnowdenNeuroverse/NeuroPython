@@ -67,8 +67,7 @@ def get_lines_in_datalake_csv(store_name: str, table_name: str, file_name_includ
         time.sleep(1)
         response_c = neuro_call("80", "DataMovementService", "CheckJob", check_request)
         status = response_c["Status"]
-        if status > 1:
-            errormsg = response_c["Message"]
+        errormsg = response_c["Message"]
 
     neuro_call("80", "DataMovementService", "FinaliseJob", check_request)
 
