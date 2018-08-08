@@ -113,9 +113,9 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
                 column_type += "(" + col["ForeignKeyTableName"] + "," + col["ForeignKeyColumnName"] + ")"
             column_data_type = list(DATA_TYPE_MAP.keys())[list(DATA_TYPE_MAP.values()).index(col["ColumnDataType"])]
             if "String" in column_data_type:
-                column_data_type += "(" + col["ColumnDataTypeSize"] + ")"
+                column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
             elif "Decimal" in column_data_type:
-                column_data_type += "(" + col["ColumnDataTypePrecision"] + "," + col["ColumnDataTypeScale"] +")"
+                column_data_type += "(" + str(col["ColumnDataTypePrecision"]) + "," + str(col["ColumnDataTypeScale"]) +")"
             is_required = col["IsRequired"]
             columns.append(column_definition(column_name, column_data_type, column_type, is_required))
     schema_type = list(SCHEMA_TYPE_MAP.keys())[list(SCHEMA_TYPE_MAP.values()).index(table_def["SchemaType"])]
