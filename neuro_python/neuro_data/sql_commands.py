@@ -65,6 +65,22 @@ def sql_to_csv(store_name: str, sql_query: "sql_query", file_name: str):
     """
     file_name = (os.getcwd().replace(home_directory(), "") + "/" + file_name).strip('/')
 
+    path_list = file_name.split('/')
+
+    indices = [i for i, x in enumerate(path_list) if x == ".."]
+    new_indices = []
+
+    for ind in indices:
+        new_indices.append(ind-1)
+        new_indices.append(ind)
+
+    new_path_list = []
+    for i in range(0,len(path_list)):
+        if i not in new_indices:
+            new_path_list.append(path_list[i])
+
+    file_name = "/".join(new_path_list)
+
     request = {"SqlParameters" : {"DataStoreName" : store_name, "SqlQuery" : sql_query},
                "FileName" : file_name}
     response = neuro_call("80", "DataMovementService", "SqlQueryToCsvNotebookFileShare", request)
@@ -96,12 +112,12 @@ def sql_to_df(store_name: str, sql_query: "sql_query"):
     file_name = str(uuid.uuid4()) + ".csv"
 
     count = len(os.getcwd().replace(home_directory(), "").split('/'))-1
+
     backs = ""
     for c in range(0, count):
         backs += "../"
-
     sql_to_csv(store_name, sql_query, backs + "tmp/" + file_name)
 
-    df = pandas.read_csv(backs + "tmp/" + file_name)
-    os.remove(backs + "tmp/" + file_name)
+    df = pandas.read_csv(home_directory() + "/" + "tmp/" + file_name)
+    os.remove(home_directory() + "/" + "tmp/" + file_name)
     return df
