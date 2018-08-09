@@ -13,7 +13,7 @@ def sinktosource(sink, response):
     if sink["Type"] == "Sql":
         return sql_source_parameters(sink["DataStoreName"], sink["TableName"])
     elif sink["Type"] == "CsvNotebookFileShare":
-        return csv_notebook_fileshare_source_parameters(sink["FileName"], sink["Headers"],
+        return csv_notebook_source_parameters(sink["FileName"], sink["Headers"],
                                                         sink["Types"], sink["DataStartRow"])
     elif sink["Type"] == "CsvDataLake":
         file_name_including_partition = sink["FolderPath"] + "/" + response["JobId"]
@@ -45,7 +45,7 @@ def sql_sink_parameters(store_name: str, table_name: str, expressions: "List[str
 
 
 
-def csv_notebook_fileshare_source_parameters(file_name: str, headers: "List[str]", column_data_types: "List[str]", data_start_row: int):
+def csv_notebook_source_parameters(file_name: str, headers: "List[str]", column_data_types: "List[str]", data_start_row: int):
     """
     Source csv file in a notebook session.
     Column data types can be found through neuro_python.neuro_data.schema_manager.get_column_data_types()
@@ -58,7 +58,7 @@ def csv_notebook_fileshare_source_parameters(file_name: str, headers: "List[str]
     return {"Type" : "CsvNotebookFileShare", "FileName" : file_name,
             "Headers" : headers, "Types" : column_data_types, "DataStartRow" : data_start_row}
 
-def csv_notebook_fileshare_sink_parameters(file_name: str, headers: "List[str]", column_data_types: "List[str]",
+def csv_notebook_sink_parameters(file_name: str, headers: "List[str]", column_data_types: "List[str]",
                                            expressions: "List[str]" = None, where_clause: str = None):
     """
     Sink csv file in a notebook session.
