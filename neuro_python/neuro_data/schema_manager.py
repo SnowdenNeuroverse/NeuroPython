@@ -121,8 +121,10 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
     schema_type = list(SCHEMA_TYPE_MAP.keys())[list(SCHEMA_TYPE_MAP.values()).index(table_def["SchemaType"])]
     allow_data_changes = table_def["AllowDataLossChanges"]
 
-    path_list = table_def["FilePath"].split('/')
-    partition_path = '/'.join(path_list[5:len(path_list)])
+    partition_path = ''
+    if table_def["FilePath"] != None:
+      path_list = table_def["FilePath"].split('/')
+      partition_path = '/'.join(path_list[5:len(path_list)])
 
     table_def1 = table_definition(columns,schema_type,allow_data_changes,partition_path)
 
