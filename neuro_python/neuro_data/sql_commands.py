@@ -120,4 +120,5 @@ def sql_to_df(store_name: str, sql_query: "sql_query"):
 
     df = pandas.read_csv(home_directory() + "/" + "tmp/" + file_name)
     os.remove(home_directory() + "/" + "tmp/" + file_name)
+    df.drop(columns=['NeuroverseLastModified'])
     return df
