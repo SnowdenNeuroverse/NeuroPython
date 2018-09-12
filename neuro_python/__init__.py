@@ -7,7 +7,10 @@ It currently contains:
 """
 
 def home_directory():
-    return "/home/jovyan/session"
+    try:
+        return os.environ['NEUROSESSIONHOMEDIR']
+    except:
+        return "/home/jovyan/session"
 
 from . import neuro_data as nd
 from . neuro_call import neuro_call
