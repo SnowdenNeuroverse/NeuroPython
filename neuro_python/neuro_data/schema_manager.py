@@ -89,12 +89,14 @@ def table_definition(columns: "List[table_column]", schema_type: str,
             schema_type_id = 3
         else:
             raise Exception("schematype must be \"DataIngestion\", \"TimeSeries\" or \"Processed\"")
+    
+    file_path = "/managed/" + schema_type + "/table/" + table_name + "/" + partition_path.strip('/').strip('\\')
 
     return {"DestinationTableDefinitionId" : "", "AllowDataLossChanges" : allow_data_changes,
             "DestinationTableDefinitionColumns" : columns,
             "DestinationTableDefinitionIndexes" : [],
             "DestinationTableName" : "", "DataStoreId" : None, "SchemaType" : schema_type_id,
-            "FilePath" : partition_path}
+            "FilePath" : file_path}
 
 def create_table(store_name: str, table_name: str, table_def: "table_definition"):
     """
