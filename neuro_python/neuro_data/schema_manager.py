@@ -71,7 +71,7 @@ def column_definition(name: str, column_data_type: str, column_type: str = "Valu
             "ForeignKeyTableName" : foreign_key_table_name}
 
 def table_definition(columns: "List[table_column]", schema_type: str,
-                     allow_data_changes: bool = False, partition_path: str = ""):
+                     allow_data_changes: bool = False, partition_path: str = "", table_name: str = "table_name"):
     """
     Object to create a Neuroverse data store table
     """
@@ -128,7 +128,7 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
       path_list = table_def["FilePath"].split('/')
       partition_path = '/'.join(path_list[5:len(path_list)])
 
-    table_def1 = table_definition(columns,schema_type,allow_data_changes,partition_path)
+    table_def1 = table_definition(columns,schema_type,allow_data_changes,partition_path,table_name=table_name)
 
     table_def1["DataStoreId"] = data_stores["DataStores"][0]["DataStoreId"]
     table_def1["DestinationTableName"] = table_name
