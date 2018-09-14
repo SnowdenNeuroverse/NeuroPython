@@ -54,7 +54,7 @@ def list_datalake_table_directory_items(store_name: str, table_name: str, direct
     table_def = sm.get_table_definition(store_name, table_name)
     schema_type = list(sm.SCHEMA_TYPE_MAP.keys())[list(sm.SCHEMA_TYPE_MAP.values()).index(table_def["SchemaType"])]
     directory_path = "/managed/" + schema_type + "/table/" + table_name + "/" + directory_path
-    request = {"DataStoreName" : store_name, "TableName" : table_name, "DirectoryPath" : directory_path}
+    request = {"DataStoreName" : store_name, "TableName" : table_name, "DirectoryPath" : directory_path.lower()}
     items = neuro_call("80", "DataMovementService", "ListDataLakeTableDirectoryItems", request)["Items"]
     return_list = []
     for item in items:
