@@ -50,6 +50,6 @@ def neuro_call(port, service, method, requestbody, timeout=1200):
         else:
             raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
     response_obj = response.json()
-    if response_obj["Error"] is not None:
+    if response_obj["ErrorCode"] is not 0:
         raise Exception("Neuroverse Error: " + response_obj["Error"])
     return response_obj
