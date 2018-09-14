@@ -18,7 +18,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200):
         domain = 'https://launchau.snowdenonline.com.au'
     elif 'sit' in os.environ['NV_DOMAIN']:
         domain = 'https://neurosit.snowdenonline.com.au'
-    elif 'sit' in os.environ['NV_DOMAIN']:
+    elif 'dev' in os.environ['NV_DOMAIN']:
         domain = 'https://neurodev.snowdenonline.com.au'
     else:
         domain = 'http://localhost'
