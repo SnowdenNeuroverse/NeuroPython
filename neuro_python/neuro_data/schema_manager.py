@@ -90,7 +90,7 @@ def table_definition(columns: "List[table_column]", schema_type: str,
         else:
             raise Exception("schematype must be \"DataIngestion\", \"TimeSeries\" or \"Processed\"")
     
-    file_path = "/managed/" + schema_type + "/table/" + table_name + "/" + partition_path.strip('/').strip('\\')
+    file_path = partition_path
 
     return {"DestinationTableDefinitionId" : "", "AllowDataLossChanges" : allow_data_changes,
             "DestinationTableDefinitionColumns" : columns,
@@ -124,7 +124,7 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
     allow_data_changes = table_def["AllowDataLossChanges"]
 
     partition_path = ''
-    if table_def["FilePath"] != None:
+    if "/managed/"+schema_type in table_def["FilePath"]:
         path_list = table_def["FilePath"].split('/')
         partition_path = '/'.join(path_list[5:len(path_list)])
 
