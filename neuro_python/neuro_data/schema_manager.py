@@ -124,7 +124,7 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
     allow_data_changes = table_def["AllowDataLossChanges"]
 
     partition_path = ''
-    if "/managed/"+schema_type in table_def["FilePath"]:
+    if "/managed/"+schema_type.lower() in table_def["FilePath"]:
         path_list = table_def["FilePath"].split('/')
         partition_path = '/'.join(path_list[5:len(path_list)])
 
