@@ -150,11 +150,6 @@ def get_table_definition(store_name: str, table_name: str):
 
     table_def["DestinationTableDefinitionIndexes"] = []
     
-    partition_path = ''
-    if "/managed/"+schema_type.lower() in table_def["FilePath"]:
-        path_list = table_def["FilePath"].split('/')
-        partition_path = '/'.join(path_list[5:len(path_list)])
-    table_def["FilePath"]=partition_path
     table_def['DestinationTableDefinitionColumns'].sort(key=lambda y: y['Index'] )
     return table_def
 
