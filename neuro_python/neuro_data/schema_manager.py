@@ -90,7 +90,7 @@ def table_definition(columns: "List[table_column]", schema_type: str,
         else:
             raise Exception("schematype must be \"DataIngestion\", \"TimeSeries\" or \"Processed\"")
     
-    file_path = "/managed/" + schema_type + "/table/" + table_name + "/" + partition_path.strip('/').strip('\\')
+    file_path = partition_path
 
     return {"DestinationTableDefinitionId" : "", "AllowDataLossChanges" : allow_data_changes,
             "DestinationTableDefinitionColumns" : columns,
@@ -124,9 +124,9 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
     allow_data_changes = table_def["AllowDataLossChanges"]
 
     partition_path = ''
-    if table_def["FilePath"] != None:
-      path_list = table_def["FilePath"].split('/')
-      partition_path = '/'.join(path_list[5:len(path_list)])
+    if "/managed/"+schema_type.lower() in table_def["FilePath"]:
+        path_list = table_def["FilePath"].split('/')
+        partition_path = '/'.join(path_list[5:len(path_list)])
 
     table_def1 = table_definition(columns,schema_type,allow_data_changes,partition_path,table_name=table_name)
 
@@ -149,7 +149,8 @@ def get_table_definition(store_name: str, table_name: str):
     table_def = table_defs["DestinationTableDefinitions"][0]
 
     table_def["DestinationTableDefinitionIndexes"] = []
-
+    
+    table_def['DestinationTableDefinitionColumns'].sort(key=lambda y: y['Index'] )
     return table_def
 
 def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
