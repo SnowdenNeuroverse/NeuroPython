@@ -15,7 +15,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200):
         #this will need to be updated when the certificate expires
         domain = 'https://15ded47f-ef38-4ee3-b989-685820ca3d36.cloudapp.net'
     elif 'tst' in os.environ['NV_DOMAIN']:
-        domain = 'https://launchau.snowdenonline.com.au'
+        domain = 'https://neuroqa.d3s.com.au'
     elif 'sit' in os.environ['NV_DOMAIN']:
         domain = 'https://neurosit.snowdenonline.com.au'
     elif 'dev' in os.environ['NV_DOMAIN']:
