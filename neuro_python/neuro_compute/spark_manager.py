@@ -55,6 +55,7 @@ def submit_job(job_name: str, pyspark_script: str,
                                        "MaxConcurrentRuns" : max_concurrent_runs
                                      }
                                     )
+
 def remove_job(job_id: str):
     """
     Remove a spark manager job
@@ -85,3 +86,19 @@ def get_job_details(job_id: str):
                                    )
     return get_job_details_response["JobDetails"]
 
+def run_job(job_id: str, run_name: str, 
+            override_script_parameters: "List[script_parameter]" = None,
+            override_import_tables: "List[import_table]" = None,
+            override_export_tables: "List[export_table]" = None):
+    """
+    Run an instance of a submitted job.
+    """
+    return neuro_call("80", "sparkmanager", "runjob", 
+                      {
+                          "JobId" :  job_id,
+                          "RunName" : run_name,
+                          "OverrideScriptParameters" : script_parameters,
+                          "OverrideImportTables" : import_tables,
+                          "OverrideExportTables" : export_tables
+                      }
+                     )
