@@ -3,6 +3,9 @@ The spark_manager module provides functions to interact with the
 Spark Manager in Neuroverse.
 """
 
+import uuid
+import os
+
 def script_parameter(name: str, value):
     """
     Cmd line parameter value to be used in the pyspark script. eg sys.argv[1]
@@ -142,4 +145,15 @@ def stop_schedule(schedule_id: str):
     """
     neuro_call("80", "sparkmanager", "stopschedule", {"ScheduleId":schedule_id})
     
+def load_pyspark_notebook_to_str(file_name: str):
+    """
+    Read a python notebook as a string into a variable. This variable can be given to submit_job
+    """
+    tmp_file=str(uuid.uuid4())
+    !jupyter nbconvert --to script $file_name --output $file
+    file=open(tmp_file+".py")
+    script=file.read()
+    file.close()
+    os.remove(tmp_file+".py")
+    return script
     
