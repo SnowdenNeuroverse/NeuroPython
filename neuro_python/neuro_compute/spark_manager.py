@@ -55,4 +55,33 @@ def submit_job(job_name: str, pyspark_script: str,
                                        "MaxConcurrentRuns" : max_concurrent_runs
                                      }
                                     )
-    
+def remove_job(job_id: str):
+    """
+    Remove a spark manager job
+    """
+    neuro_call("80", "sparkmanager", "removejob", {"JobId":job_id})
+
+def list_jobs(workspace_id: str = None, cluster_id: str = None, max_returned: int = None):
+    """
+    List the jobs submitted to spark manager
+    """
+    list_jobs_response = neuro_call("80", "sparkmanager", "listjobs", 
+                                     {
+                                         "WorkspaceId" : workspace_id,
+                                         "ClusterId" : cluster_id,
+                                         "NumberReturned" : max_returned
+                                     }
+                                   )
+    return list_jobs_response["JobSummaries"]
+
+def get_job_details(job_id: str):
+    """
+    Get details about a submitted job
+    """
+    get_job_details_response = neuro_call("80", "sparkmanager", "getjobdetails", 
+                                     {
+                                         "JobId":job_id
+                                     }
+                                   )
+    return get_job_details_response["JobDetails"]
+
