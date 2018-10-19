@@ -118,12 +118,28 @@ def list_runs(job_id: str, schedule_id: str = None, submitted_by: str = None, ma
                                    )
     return list_runs_response["RunSummaries"]
 
-def run_schedule():
+def run_schedule(job_id: str, schedule_name: str, utc_cron_expression: str, 
+            override_script_parameters: "List[script_parameter]" = None,
+            override_import_tables: "List[import_table]" = None,
+            override_export_tables: "List[export_table]" = None):
     """
     Start a run schedule on a spark manager job. A cron expression is used to specify the schedule based on utc time.
     """
-    
-    
-    
+    return neuro_call("80", "sparkmanager", "runschedule", 
+                      {
+                          "JobId" :  job_id,
+                          "ScheduleName" : schedule_name,
+                          "UtcCronExpression" : utc_cron_expression,
+                          "OverrideScriptParameters" : script_parameters,
+                          "OverrideImportTables" : import_tables,
+                          "OverrideExportTables" : export_tables
+                      }
+                     )
+
+def stop_schedule(schedule_id: str):
+    """
+    Stop a run schedule on a spark manager job
+    """
+    neuro_call("80", "sparkmanager", "stopschedule", {"ScheduleId":schedule_id})
     
     
