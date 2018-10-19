@@ -3,6 +3,7 @@ The spark_manager module provides functions to interact with the
 Spark Manager in Neuroverse.
 """
 
+from neuro_python.neuro_call import neuro_call
 import uuid
 import os
 
