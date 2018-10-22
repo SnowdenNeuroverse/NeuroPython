@@ -132,7 +132,7 @@ def rechunk_datalake_csv(store_name: str, from_table_name: str, file_name_includ
 
     return outfiles
 
-def datalake_to_csv(store_name: str, table_name: str, file_name_including_partition: str, data_start_row:str = 2, file_name: str):
+def datalake_to_csv(store_name: str, table_name: str, file_name_including_partition: str, file_name: str, data_start_row:str = 2):
     """
     Move a file in a datalake into a csv in your notebook environment
     """
