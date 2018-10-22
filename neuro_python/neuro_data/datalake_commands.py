@@ -4,8 +4,9 @@ Helper commands for a datalake
 
 import os
 import time
-from neuro_python.neuro_data import schema_manager as sm
+from neuro_python import home_directory
 from neuro_python.neuro_call import neuro_call
+from neuro_python.neuro_data import schema_manager as sm
 from neuro_python.neuro_data import source_sink as ss
 from neuro_python.neuro_data import stream_table as st
 
