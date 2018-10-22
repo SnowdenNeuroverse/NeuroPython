@@ -2,6 +2,7 @@
 Helper commands for a datalake
 """
 
+import os
 import time
 from neuro_python.neuro_data import schema_manager as sm
 from neuro_python.neuro_call import neuro_call
