@@ -101,9 +101,9 @@ def run_job(job_id: str, run_name: str,
                       {
                           "JobId" :  job_id,
                           "RunName" : run_name,
-                          "OverrideScriptParameters" : script_parameters,
-                          "OverrideImportTables" : import_tables,
-                          "OverrideExportTables" : export_tables
+                          "OverrideScriptParameters" : override_script_parameters,
+                          "OverrideImportTables" : override_import_tables,
+                          "OverrideExportTables" : override_export_tables
                       }
                      )
 
@@ -134,9 +134,9 @@ def run_schedule(job_id: str, schedule_name: str, utc_cron_expression: str,
                           "JobId" :  job_id,
                           "ScheduleName" : schedule_name,
                           "UtcCronExpression" : utc_cron_expression,
-                          "OverrideScriptParameters" : script_parameters,
-                          "OverrideImportTables" : import_tables,
-                          "OverrideExportTables" : export_tables
+                          "OverrideScriptParameters" : override_script_parameters,
+                          "OverrideImportTables" : override_import_tables,
+                          "OverrideExportTables" : override_export_tables
                       }
                      )
 
