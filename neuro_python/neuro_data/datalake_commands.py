@@ -5,6 +5,8 @@ Helper commands for a datalake
 import time
 from neuro_python.neuro_data import schema_manager as sm
 from neuro_python.neuro_call import neuro_call
+from neuro_python.neuro_data import source_sink as ss
+from neuro_python.neuro_data import stream_table as st
 
 def delete_datalake_file(store_name: str, table_name: str, file_name_including_partition: str):
     """
@@ -129,3 +131,47 @@ def rechunk_datalake_csv(store_name: str, from_table_name: str, file_name_includ
             outfiles.append(file)
 
     return outfiles
+
+def datalake_to_csv(store_name: str, table_name: str, file_name_including_partition: str, data_start_row:str = 2, file_name: str):
+    """
+    Move a file in a datalake into a csv in your notebook environment
+    """
+    #Get table schema
+    table_def = sm.get_table_definition(store_name, table_name)
+    column_names = []
+    column_types = []
+    table_def["DestinationTableDefinitionColumns"].sort(key=lambda x: x['Index'])
+    for col in table_def["DestinationTableDefinitionColumns"]:
+        column_name = col["ColumnName"]
+        column_data_type = str(list(sm.DATA_TYPE_MAP.keys())[list(sm.DATA_TYPE_MAP.values()).index(col["ColumnDataType"])])
+        if "String" in column_data_type:
+            column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
+        elif "Decimal" in column_data_type:
+            column_data_type += "(" + str(col["ColumnDataTypePrecision"]) + "," + str(col["ColumnDataTypeScale"]) +")"
+        column_names.append(column_name)
+        column_types.append(column_data_type)
+    source=ss.csv_datalake_source_parameters(store_name,table_name,file_name_including_partition,data_start_row)
+    sink=ss.csv_notebook_sink_parameters(file_name,column_names,column_types)
+    st.stream(source,sink)
+    return None
+
+def datalake_to_df(store_name: str, table_name: str, file_name_including_partition: str, data_start_row:str = 2):
+    """
+    Load datalake file into a dataframe
+    """
+    if not os.path.exists(home_directory()+"/tmp"):
+        os.makedirs(home_directory()+"/tmp")
+
+    file_name = str(uuid.uuid4()) + ".csv"
+
+    count = len(os.getcwd().replace(home_directory(), "").split('/'))-1
+
+    backs = ""
+    for c in range(0, count):
+        backs += "../"
+    datalake_to_csv(store_name, table_name,file_name_including_partition,data_start_row, backs + "tmp/" + file_name)
+
+    df = pandas.read_csv(home_directory() + "/" + "tmp/" + file_name)
+    os.remove(home_directory() + "/" + "tmp/" + file_name)
+    df = df.drop(columns=['NeuroverseLastModified'])
+    return df
