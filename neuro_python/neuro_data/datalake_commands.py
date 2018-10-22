@@ -147,7 +147,7 @@ def datalake_to_csv(store_name: str, table_name: str, file_name_including_partit
     table_def["DestinationTableDefinitionColumns"].sort(key=lambda x: x['Index'])
     for col in table_def["DestinationTableDefinitionColumns"]:
         column_name = col["ColumnName"]
-        column_data_type = str(list(sm.DATA_TYPE_MAP.keys())[list(sm.DATA_TYPE_MAP.values()).index(col["ColumnDataType"])])
+        column_data_type = DATA_TYPE_MAP_REV[col['ColumnDataType']]
         if "String" in column_data_type:
             column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
         elif "Decimal" in column_data_type:
