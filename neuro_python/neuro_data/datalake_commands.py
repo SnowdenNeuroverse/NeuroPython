@@ -173,7 +173,7 @@ def datalake_to_df(store_name: str, table_name: str, file_name_including_partiti
     backs = ""
     for c in range(0, count):
         backs += "../"
-    datalake_to_csv(store_name, table_name,file_name_including_partition,data_start_row, backs + "tmp/" + file_name)
+    datalake_to_csv(store_name, table_name,file_name_including_partition, backs + "tmp/" + file_name,data_start_row)
 
     df = pandas.read_csv(home_directory() + "/" + "tmp/" + file_name)
     os.remove(home_directory() + "/" + "tmp/" + file_name)
