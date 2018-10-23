@@ -177,5 +177,4 @@ def datalake_to_df(store_name: str, table_name: str, file_name_including_partiti
 
     df = pandas.read_csv(home_directory() + "/" + "tmp/" + file_name)
     os.remove(home_directory() + "/" + "tmp/" + file_name)
-    df = df.drop(columns=['NeuroverseLastModified'])
     return df
