@@ -54,6 +54,14 @@ def csv_notebook_source_parameters(file_name: str, headers: "List[str]", column_
         raise Exception("File doesn't exist")
 
     file_name = (os.getcwd().replace(home_directory(), "") + "/" + file_name).strip('/')
+    path=[]
+    for dir in file_name.split('/'):
+        if dir=="..":
+            path.pop()
+        else:
+            path.append(dir)
+    file_name='/'.join(path)
+    file_name
 
     return {"Type" : "CsvNotebookFileShare", "FileName" : file_name,
             "Headers" : headers, "Types" : column_data_types, "DataStartRow" : data_start_row}
@@ -70,6 +78,14 @@ def csv_notebook_sink_parameters(file_name: str, headers: "List[str]", column_da
     ROW and RANDOM are available for use in the where_clause.
     """
     file_name = (os.getcwd().replace(home_directory(), "") + "/" + file_name).strip('/')
+    path=[]
+    for dir in file_name.split('/'):
+        if dir=="..":
+            path.pop()
+        else:
+            path.append(dir)
+    file_name='/'.join(path)
+    file_name
     return {"Type" : "CsvNotebookFileShare", "FileName" : file_name, "Headers" : headers,
             "Types" : column_data_types, "Expressions" : expressions, "WhereClause" : where_clause}
 
