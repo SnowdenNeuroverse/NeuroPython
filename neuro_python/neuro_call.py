@@ -42,22 +42,24 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
             response = requests.post(url, headers=headers, data=msg_data, verify=False,
                                  timeout=timeout)
     if response.status_code != 200:
-        response = requests.post(url, headers=headers, data=msg_data, verify=False,
-                                 timeout=timeout)
-        if response.status_code == 401:
-            raise ValueError("""
-            Session has expired:
-            Log into Neuroverse and connect to your Notebooks session or
-            reload the Notebooks page in Neuroverse
-            """)
-        elif response.status_code == 404:
-            raise ValueError("""
-            Session has expired:
-            Log into Neuroverse and connect to your Notebooks session or
-            reload the Notebooks page in Neuroverse
-            """)
-        else:
-            raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
+        if retry:
+            response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                     timeout=timeout)
+        if response.status_code != 200:
+            if response.status_code == 401:
+                raise ValueError("""
+                Session has expired:
+                Log into Neuroverse and connect to your Notebooks session or
+                reload the Notebooks page in Neuroverse
+                """)
+            elif response.status_code == 404:
+                raise ValueError("""
+                Session has expired:
+                Log into Neuroverse and connect to your Notebooks session or
+                reload the Notebooks page in Neuroverse
+                """)
+            else:
+                raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
     try:
         response_obj = response.json()
         errCode = response_obj["ErrorCode"]
@@ -65,22 +67,20 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
         response = requests.post(url, headers=headers, data=msg_data, verify=False,
                                  timeout=timeout)
         if response.status_code != 200:
-        response = requests.post(url, headers=headers, data=msg_data, verify=False,
-                                 timeout=timeout)
-        if response.status_code == 401:
-            raise ValueError("""
-            Session has expired:
-            Log into Neuroverse and connect to your Notebooks session or
-            reload the Notebooks page in Neuroverse
-            """)
-        elif response.status_code == 404:
-            raise ValueError("""
-            Session has expired:
-            Log into Neuroverse and connect to your Notebooks session or
-            reload the Notebooks page in Neuroverse
-            """)
-        else:
-            raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
+            if response.status_code == 401:
+                raise ValueError("""
+                Session has expired:
+                Log into Neuroverse and connect to your Notebooks session or
+                reload the Notebooks page in Neuroverse
+                """)
+            elif response.status_code == 404:
+                raise ValueError("""
+                Session has expired:
+                Log into Neuroverse and connect to your Notebooks session or
+                reload the Notebooks page in Neuroverse
+                """)
+            else:
+                raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
         response_obj = response.json()
         errCode = response_obj["ErrorCode"]
     if errCode is not 0:
