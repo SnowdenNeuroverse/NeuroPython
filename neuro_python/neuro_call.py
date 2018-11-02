@@ -6,7 +6,9 @@ import json
 import requests
 import urllib3
 
-def neuro_call(port, service, method, requestbody, timeout=1200):
+
+
+def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     """
     The neuro_call function provides a way of making authorised calls to the Neuroverse api
     """
@@ -32,9 +34,16 @@ def neuro_call(port, service, method, requestbody, timeout=1200):
     msg_data_length = len(msg_data)
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
     urllib3.disable_warnings()
-    response = requests.post(url, headers=headers, data=msg_data, verify=False,
-                             timeout=timeout)
+    try:
+        response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                 timeout=timeout)
+    except:
+        if retry:
+            response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                 timeout=timeout)
     if response.status_code != 200:
+        response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                 timeout=timeout)
         if response.status_code == 401:
             raise ValueError("""
             Session has expired:
@@ -49,7 +58,31 @@ def neuro_call(port, service, method, requestbody, timeout=1200):
             """)
         else:
             raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
-    response_obj = response.json()
-    if response_obj["ErrorCode"] is not 0:
+    try:
+        response_obj = response.json()
+        errCode = response_obj["ErrorCode"]
+    except:
+        response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                 timeout=timeout)
+        if response.status_code != 200:
+        response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                 timeout=timeout)
+        if response.status_code == 401:
+            raise ValueError("""
+            Session has expired:
+            Log into Neuroverse and connect to your Notebooks session or
+            reload the Notebooks page in Neuroverse
+            """)
+        elif response.status_code == 404:
+            raise ValueError("""
+            Session has expired:
+            Log into Neuroverse and connect to your Notebooks session or
+            reload the Notebooks page in Neuroverse
+            """)
+        else:
+            raise ValueError('Neuroverse connection error: Http code ' + str(response.status_code))
+        response_obj = response.json()
+        errCode = response_obj["ErrorCode"]
+    if errCode is not 0:
         raise Exception("Neuroverse Error: " + response_obj["Error"])
     return response_obj
