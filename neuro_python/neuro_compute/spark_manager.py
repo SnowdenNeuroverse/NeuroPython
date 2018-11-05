@@ -151,6 +151,8 @@ def load_pyspark_notebook_to_str(file_name: str):
     Read a python notebook as a string into a variable. This variable can be given to submit_job
     """
     tmp_file=str(uuid.uuid4())
+    if not os.path.isfile(file_name) :
+        raise Exception(file_name + " does not exist")
     os.system("jupyter nbconvert --to script '" + file_name +"' --output '" + tmp_file + "'")
     file=open(tmp_file+".py")
     script=file.read()
