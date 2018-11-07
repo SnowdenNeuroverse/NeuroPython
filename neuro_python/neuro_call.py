@@ -6,11 +6,6 @@ import json
 import requests
 import urllib3
 
-debug_val=False
-
-def debug():
-    debug_val=True
-
 def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     """
     The neuro_call function provides a way of making authorised calls to the Neuroverse api
