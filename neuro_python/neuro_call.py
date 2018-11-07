@@ -32,7 +32,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     msg_data_length = len(msg_data)
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
     urllib3.disable_warnings()
-    if debug_val:
+    if neuro_python.debug_val:
         print("Request")
         print(url)
         print(str(headers))
@@ -46,7 +46,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
                                  timeout=timeout)
         else:
             raise err
-    if debug_val:
+    if neuro_python.debug_val:
         print("Response")
         print(response.status_code)
         print(response.read())
