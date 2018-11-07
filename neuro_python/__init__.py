@@ -14,3 +14,4 @@ def home_directory():
 
 from . import neuro_data as nd
 from . neuro_call import neuro_call
+from . neuro_call import debug
