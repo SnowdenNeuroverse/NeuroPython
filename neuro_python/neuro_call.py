@@ -50,7 +50,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     if neuro_python.debug_val:
         print("Response")
         print(response.status_code)
-        print(response.read())
+        print(response.content)
     if response.status_code != 200:
         if retry:
             response = requests.post(url, headers=headers, data=msg_data, verify=False,
