@@ -6,6 +6,11 @@ It currently contains:
     - neuro_data module(nd): Gives a user of python access to Neuroverse Data Stores
 """
 
+debug_val=False
+
+def debug():
+    debug_val=True
+
 def home_directory():
     try:
         return os.environ['NEUROSESSIONHOMEDIR']
@@ -14,4 +19,3 @@ def home_directory():
 
 from . import neuro_data as nd
 from . neuro_call import neuro_call
-from . neuro_call import debug
