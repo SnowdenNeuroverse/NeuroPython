@@ -98,5 +98,8 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
         else:
             raise err
     if errCode is not 0:
-        raise Exception("Neuroverse Error: " + response_obj["Error"])
+        errMsg=""
+        if response_obj["Error"] is not None:
+            errMsg=response_obj["Error"]
+        raise Exception("Neuroverse Error(%s): " % str(errCode) + errMsg)
     return response_obj
