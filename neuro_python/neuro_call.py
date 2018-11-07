@@ -6,10 +6,10 @@ import json
 import requests
 import urllib3
 
-debug=False
+debug_val=False
 
 def debug():
-    debug=True
+    debug_val=True
 
 def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     """
@@ -37,7 +37,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     msg_data_length = len(msg_data)
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
     urllib3.disable_warnings()
-    if debug:
+    if debug_val:
         print("Request")
         print(url)
         print(str(headers))
@@ -51,7 +51,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
                                  timeout=timeout)
         else:
             raise err
-    if debug:
+    if debug_val:
         print("Response")
         print(response.status_code)
         print(response.read())
