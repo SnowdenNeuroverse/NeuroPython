@@ -8,14 +8,8 @@ It currently contains:
 
 debug_val=False
 
-def debug():
-    debug_val=True
-
 def home_directory():
     try:
         return os.environ['NEUROSESSIONHOMEDIR']
     except:
         return "/home/jovyan/session"
-
-from . import neuro_data as nd
-from . neuro_call import neuro_call
