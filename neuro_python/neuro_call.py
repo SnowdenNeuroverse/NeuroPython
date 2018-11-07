@@ -50,7 +50,6 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     if neuro_python.debug_val:
         print("Response")
         print(response.status_code)
-        print(response.content)
     if response.status_code != 200:
         if retry:
             response = requests.post(url, headers=headers, data=msg_data, verify=False,
@@ -72,6 +71,8 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
                 raise Exception('Neuroverse connection error: Http code ' + str(response.status_code))
     try:
         response_obj = response.json()
+        if neuro_python.debug_val:
+            print(str(response_obj))
         errCode = response_obj["ErrorCode"]
     except Exception as err:
         if retry:
