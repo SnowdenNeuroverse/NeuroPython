@@ -5,6 +5,7 @@ import os
 import json
 import requests
 import urllib3
+import neuro_python
 
 def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     """
