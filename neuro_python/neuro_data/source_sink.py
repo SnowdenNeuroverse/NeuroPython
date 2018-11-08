@@ -21,7 +21,7 @@ def sinktosource(sink, response):
         file_name_including_partition += ".csv"
         file_name_including_partition = file_name_including_partition.split(sink["TableName"].lower())[1]
         return csv_datalake_source_parameters(sink["DataStoreName"], sink["TableName"], file_name_including_partition,
-                                              1)
+                                              2)
     else:
         raise Exception("Sink type: " + sink["Type"] + " not supported")
 
