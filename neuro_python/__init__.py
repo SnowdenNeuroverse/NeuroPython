@@ -6,11 +6,10 @@ It currently contains:
     - neuro_data module(nd): Gives a user of python access to Neuroverse Data Stores
 """
 
+debug_val=False
+
 def home_directory():
     try:
         return os.environ['NEUROSESSIONHOMEDIR']
     except:
         return "/home/jovyan/session"
-
-from . import neuro_data as nd
-from . neuro_call import neuro_call
