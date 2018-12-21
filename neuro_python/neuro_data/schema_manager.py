@@ -13,6 +13,7 @@ DATA_TYPE_MAP = {"Int" : 11, "Decimal" : 9, "String" : 14, "BigInt" : 1, "Boolea
 DATA_TYPE_MAP_REV = {3 : "Boolean", 11: "Int32", 1 : "Int64", 9 : "Decimal", 10 : "Double", 6 : "DateTime", 22 : "Guid", 14 : "String"}
 COL_TYPE_MAP = {"Key" : 1, "Value" : 4, "TimeStampKey" : 3, "ForeignKey" : 2}
 SCHEMA_TYPE_MAP = {"DataIngestion" : 1, "TimeSeries" : 2, "Processed" : 3}
+SCHEMA_TYPE_MAP_REV = {1:"DataIngestion", 2:"TimeSeries", 3:"Processed"}
 
 def get_column_data_types():
     "Get available data types for columns in Neuroverse tabular data"
@@ -164,9 +165,9 @@ def list_tables(store_name: str, contains: str=None):
 
     table_defs = neuro_call("80", "DataPopulation", "GetDestinationTableDefinition", {"DataStoreId" : data_stores[0]["DataStoreId"]})
     if contains==None:
-      return [{"TableName":t['DestinationTableName'],"TableType":t["SchemaType"]} for t in table_defs["DestinationTableDefinitions"]]
+      return [{"TableName":t['DestinationTableName'],"TableType":SCHEMA_TYPE_MAP_REV[t["SchemaType"]]} for t in table_defs["DestinationTableDefinitions"]]
     else:
-      return [{"TableName":t['DestinationTableName'],"TableType":t["SchemaType"]} for t in table_defs["DestinationTableDefinitions"] if contains in t['DestinationTableName']]
+      return [{"TableName":t['DestinationTableName'],"TableType":SCHEMA_TYPE_MAP_REV[t["SchemaType"]]} for t in table_defs["DestinationTableDefinitions"] if contains in t['DestinationTableName']]
 
 def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
     """
