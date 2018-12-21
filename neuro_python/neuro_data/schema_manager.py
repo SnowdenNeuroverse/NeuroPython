@@ -165,7 +165,7 @@ def list_tables(store_name: str, contains: str='', schema_type: str=''):
 
     table_defs = neuro_call("80", "DataPopulation", "GetDestinationTableDefinition", {"DataStoreId" : data_stores[0]["DataStoreId"]})
     
-    return [{"TableName":t['DestinationTableName'],"SchemaType":SCHEMA_TYPE_MAP_REV[t["SchemaType"]]} for t in table_defs["DestinationTableDefinitions"] if contains.lower() in t['DestinationTableName'].lower() and schema_type.lower() in t['SchemaType'].lower()]
+    return [{"TableName":t['DestinationTableName'],"SchemaType":SCHEMA_TYPE_MAP_REV[t["SchemaType"]]} for t in table_defs["DestinationTableDefinitions"] if contains.lower() in t['DestinationTableName'].lower() and schema_type.lower() in SCHEMA_TYPE_MAP_REV[t['SchemaType']].lower()]
 
 def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
     """
