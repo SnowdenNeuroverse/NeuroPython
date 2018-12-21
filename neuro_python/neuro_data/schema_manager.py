@@ -153,6 +153,20 @@ def get_table_definition(store_name: str, table_name: str):
     
     table_def['DestinationTableDefinitionColumns'].sort(key=lambda y: y['Index'] )
     return table_def
+  
+def list_tables(store_name: str, contains: str=None):
+    """
+    List existing tables in a Neuroverse data store
+    """
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
+    if len(data_stores) == 0:
+        raise Exception("Data store doesn't exist")
+
+    table_defs = neuro_call("80", "DataPopulation", "GetDestinationTableDefinition", {"DataStoreId" : data_stores[0]["DataStoreId"]})
+    if contains==None:
+      return [{"TableName":t['DestinationTableName'],"TableType":t["SchemaType"]} for t in table_defs["DestinationTableDefinitions"]]
+    else:
+      return [{"TableName":t['DestinationTableName'],"TableType":t["SchemaType"]} for t in table_defs["DestinationTableDefinitions"] if contains in t['DestinationTableName']]
 
 def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
     """
