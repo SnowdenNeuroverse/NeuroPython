@@ -9,4 +9,4 @@ def list_active_sessions():
     """
     Remove a spark manager job
     """
-    neuro_call("8080", "notebookmanagementservice", "GetDetailedSessionList", None)
+    return neuro_call("8080", "notebookmanagementservice", "GetDetailedSessionList", None)
