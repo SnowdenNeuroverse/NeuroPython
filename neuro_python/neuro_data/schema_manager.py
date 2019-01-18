@@ -13,6 +13,7 @@ DATA_TYPE_MAP = {"Int" : 11, "Decimal" : 9, "String" : 14, "BigInt" : 1, "Boolea
 DATA_TYPE_MAP_REV = {3 : "Boolean", 11: "Int32", 1 : "Int64", 9 : "Decimal", 10 : "Double", 6 : "DateTime", 22 : "Guid", 14 : "String"}
 COL_TYPE_MAP = {"Key" : 1, "Value" : 4, "TimeStampKey" : 3, "ForeignKey" : 2}
 SCHEMA_TYPE_MAP = {"DataIngestion" : 1, "TimeSeries" : 2, "Processed" : 3}
+SCHEMA_TYPE_MAP_REV = {1:"DataIngestion", 2:"TimeSeries", 3:"Processed"}
 
 def get_column_data_types():
     "Get available data types for columns in Neuroverse tabular data"
@@ -153,6 +154,18 @@ def get_table_definition(store_name: str, table_name: str):
     
     table_def['DestinationTableDefinitionColumns'].sort(key=lambda y: y['Index'] )
     return table_def
+  
+def list_tables(store_name: str, table_name: str='', schema_type: str=''):
+    """
+    List existing tables in a Neuroverse data store
+    """
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
+    if len(data_stores) == 0:
+        raise Exception("Data store doesn't exist")
+
+    table_defs = neuro_call("80", "DataPopulation", "GetDestinationTableDefinition", {"DataStoreId" : data_stores[0]["DataStoreId"]})
+    
+    return [{"TableName":t['DestinationTableName'],"SchemaType":SCHEMA_TYPE_MAP_REV[t["SchemaType"]]} for t in table_defs["DestinationTableDefinitions"] if table_name.lower() in t['DestinationTableName'].lower() and schema_type.lower() in SCHEMA_TYPE_MAP_REV[t['SchemaType']].lower()]
 
 def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
     """
