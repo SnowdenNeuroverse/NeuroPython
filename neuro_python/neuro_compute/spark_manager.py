@@ -173,7 +173,7 @@ def list_libraries(workspace_id: str = None, cluster_id: str = None, show_all: b
     if show_all:
         return list_jobs_response["Libraries"]
     else:
-        return filter(lambda x: x['Status'] != 'UNINSTALL_ON_RESTART', list_jobs_response["Libraries"])
+        return list(filter(lambda x: x['Status'] != 'UNINSTALL_ON_RESTART', list_jobs_response["Libraries"]))
 
 def install_library(library_name: str, library_version: str, library_uri: str = None, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
     """
