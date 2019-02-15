@@ -160,7 +160,7 @@ def load_pyspark_notebook_to_str(file_name: str):
     os.remove(tmp_file+".py")
     return script
     
-def list_libraries(workspace_id: str = None, cluster_id: str = None):
+def list_libraries(workspace_id: str = None, cluster_id: str = None, show_all: bool = False):
     """
     List the non default libraries available on the cluster
     """
@@ -170,7 +170,10 @@ def list_libraries(workspace_id: str = None, cluster_id: str = None):
                                          "ClusterId" : cluster_id
                                      }
                                    )
-    return list_jobs_response["Libraries"]
+    if show_all:
+        return list_jobs_response["Libraries"]
+    else:
+        return filter(lambda x: x['Status'] != 'UNINSTALL_ON_RESTART', list_jobs_response["Libraries"])
 
 def install_library(library_name: str, library_version: str, library_uri: str = None, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
     """
