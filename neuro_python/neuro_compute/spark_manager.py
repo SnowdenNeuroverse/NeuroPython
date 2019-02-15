@@ -37,7 +37,7 @@ def export_table(dataframe_name: str, data_store_name: str, table_name: str, par
     return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPath":partition_path}
 
 def library(library_name: str, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
-    libraries=[i for i in list_libraries(workspace_id=workspace_id,cluster_id=cluster_id) if i['LibraryName']==library_name].sort(key=lambda x:x['LibraryVersion'])
+    libraries=sorted([i for i in list_libraries(workspace_id=workspace_id,cluster_id=cluster_id) if i['LibraryName']==library_name]key=lambda x:x['LibraryVersion'])
     if len(libraries)==0:
         raise Exception("Library not found")
     return {'LibraryName' : library_name, 'LibraryType' : library_type, 'LibraryVersion' : libraries[-1]}
