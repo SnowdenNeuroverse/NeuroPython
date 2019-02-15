@@ -36,10 +36,17 @@ def export_table(dataframe_name: str, data_store_name: str, table_name: str, par
         raise Exception("A string is not returned when evaluating: " + partition_path)
     return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPath":partition_path}
 
+def library(library_name: str, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
+    libraries=[i for i in list_libraries(workspace_id=workspace_id,cluster_id=cluster_id) if i['LibraryName']==library_name].sort(key=lambda x:x['LibraryVersion'])
+    if len(libraries)==0:
+        raise Exception("Library not found")
+    return {'LibraryName' : library_name, 'LibraryType' : library_type, 'LibraryVersion' : libraries[-1]}
+
 def submit_job(job_name: str, pyspark_script: str,
                script_parameters: "List[script_parameter]" = None,
                import_tables: "List[import_table]" = None,
                export_tables: "List[export_table]" = None,
+               dependencies: "List[library]" = None,
                workspace_id: str = None, cluster_id: str = None,
                run_retry: bool = None, max_concurrent_runs: int = None):
     """
@@ -56,7 +63,8 @@ def submit_job(job_name: str, pyspark_script: str,
                                        "WorkspaceId" : workspace_id,
                                        "ClusterId" : cluster_id,
                                        "RunRetry" : run_retry,
-                                       "MaxConcurrentRuns" : max_concurrent_runs
+                                       "MaxConcurrentRuns" : max_concurrent_runs,
+                                       "LibraryDependencies" : dependencies
                                      }
                                     )
 
