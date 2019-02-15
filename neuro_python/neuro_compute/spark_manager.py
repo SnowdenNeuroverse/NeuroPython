@@ -201,7 +201,7 @@ def uninstall_library(library_name: str, library_version: str, library_type: str
                                      }
                                    )
 
-def upgrade_library(library_name: str, library_version: str, force: bool = false, library_uri: str = None, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
+def upgrade_library(library_name: str, library_version: str, force: bool = False, library_uri: str = None, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
     """
     Install non default libraries on the cluster
     """
