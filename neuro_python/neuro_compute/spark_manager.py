@@ -40,7 +40,7 @@ def library(library_name: str, library_type: int = 0, workspace_id: str = None, 
     libraries=sorted([i for i in list_libraries(workspace_id=workspace_id,cluster_id=cluster_id) if i['LibraryName']==library_name],key=lambda x:x['LibraryVersion'])
     if len(libraries)==0:
         raise Exception("Library not found")
-    return {'LibraryName' : library_name, 'LibraryType' : library_type, 'LibraryVersion' : libraries[-1]}
+    return {'LibraryName' : library_name, 'LibraryType' : library_type, 'LibraryVersion' : libraries['LibraryVersion'][-1]}
 
 def submit_job(job_name: str, pyspark_script: str,
                script_parameters: "List[script_parameter]" = None,
