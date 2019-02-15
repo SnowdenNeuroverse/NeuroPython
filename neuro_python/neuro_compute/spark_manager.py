@@ -160,3 +160,59 @@ def load_pyspark_notebook_to_str(file_name: str):
     os.remove(tmp_file+".py")
     return script
     
+def list_libraries(workspace_id: str = None, cluster_id: str = None):
+    """
+    List the non default libraries available on the cluster
+    """
+    list_jobs_response = neuro_call("80", "sparkmanager", "ListClusterLibraries", 
+                                     {
+                                         "WorkspaceId" : workspace_id,
+                                         "ClusterId" : cluster_id
+                                     }
+                                   )
+    return list_jobs_response["Libraries"]
+
+def install_library(library_name: str, library_version: str, library_uri: str = None, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
+    """
+    Install non default libraries on the cluster
+    """
+    list_jobs_response = neuro_call("80", "sparkmanager", "InstallClusterLibrary", 
+                                     {
+                                         "WorkspaceId" : workspace_id,
+                                         "ClusterId" : cluster_id,
+                                         "LibraryName" : library_name,
+                                         "LibraryVersion" : library_version,
+                                         "LibraryType" : library_type,
+                                         "LibraryRepositoryUri" : library_uri
+                                     }
+                                   )
+    
+def uninstall_library(library_name: str, library_version: str, library_type: str, workspace_id: str = None, cluster_id: str = None):
+    """
+    Uninstall non default libraries on the cluster
+    """
+    list_jobs_response = neuro_call("80", "sparkmanager", "UninstallClusterLibrary", 
+                                     {
+                                         "WorkspaceId" : workspace_id,
+                                         "ClusterId" : cluster_id,
+                                         "LibraryName" : library_name,
+                                         "LibraryVersion" : library_version,
+                                         "LibraryType" : library_type
+                                     }
+                                   )
+
+def upgrade_library(library_name: str, library_version: str, force: bool = false, library_uri: str = None, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
+    """
+    Install non default libraries on the cluster
+    """
+    list_jobs_response = neuro_call("80", "sparkmanager", "UpgradeClusterLibrary", 
+                                     {
+                                         "WorkspaceId" : workspace_id,
+                                         "ClusterId" : cluster_id,
+                                         "LibraryName" : library_name,
+                                         "LibraryVersion" : library_version,
+                                         "LibraryType" : library_type,
+                                         "LibraryRepositoryUri" : library_uri,
+                                         "ForceJobDependenciesUpdate" : force
+                                     }
+                                   )
