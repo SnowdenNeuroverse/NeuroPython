@@ -187,7 +187,7 @@ def install_library(library_name: str, library_version: str, library_uri: str = 
                                      }
                                    )
     
-def uninstall_library(library_name: str, library_version: str, library_type: str, workspace_id: str = None, cluster_id: str = None):
+def uninstall_library(library_name: str, library_version: str, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
     """
     Uninstall non default libraries on the cluster
     """
