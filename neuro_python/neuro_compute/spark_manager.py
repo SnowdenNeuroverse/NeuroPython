@@ -181,7 +181,7 @@ def list_libraries(workspace_id: str = None, cluster_id: str = None, show_all: b
     if show_all:
         return list_jobs_response["Libraries"]
     else:
-        tmp_libraries=sorted(list_jobs_response["Libraries"],key=lambda x:x['LibraryType']+x['LibraryName']+x['LibraryVersion'])
+        tmp_libraries=sorted(list_jobs_response["Libraries"],key=lambda x:str(x['LibraryType'])+x['LibraryName']+x['LibraryVersion'])
         libraries=[]
         for i in range(0,len(tmp_libraries)):
             if i['Status']=='INSTALLED':
