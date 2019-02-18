@@ -37,7 +37,7 @@ def export_table(dataframe_name: str, data_store_name: str, table_name: str, par
     return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPath":partition_path}
 
 def library(library_name: str, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
-    libraries=sorted([i for i in list_libraries(workspace_id=workspace_id,cluster_id=cluster_id) if i['LibraryName']==library_name],key=lambda x:x['LibraryVersion'])
+    libraries=sorted([i for i in list_libraries(workspace_id=workspace_id,cluster_id=cluster_id,show_all=True) if i['LibraryName']==library_name],key=lambda x:x['LibraryVersion'])
     if len(libraries)==0:
         raise Exception("Library not found")
     return {'LibraryName' : library_name, 'LibraryType' : library_type, 'LibraryVersion' : libraries[-1]['LibraryVersion']}
@@ -181,6 +181,16 @@ def list_libraries(workspace_id: str = None, cluster_id: str = None, show_all: b
     if show_all:
         return list_jobs_response["Libraries"]
     else:
+        tmp_libraries=sorted(list_jobs_response["Libraries"],key=lambda x:x['LibraryType']+x['LibraryName']+x['LibraryVersion'])
+        libraries=[]
+        for i in range(0,len(tmp_libraries)):
+            if i['Status']=='INSTALLED':
+                libraries.append(i)
+            elif i['Status'] == 'UNINSTALL_ON_RESTART' and len(libraries)>0 and libraries[-1]['LibraryType']==i['LibraryType'] and libraries[-1]['LibraryName']==i['LibraryName']:
+                if libraries[-1]['Status']=='INSTALLED':
+                    libraries.append(i)
+                else:
+                    libraries[-1]=i
         return list(filter(lambda x: x['Status'] != 'UNINSTALL_ON_RESTART', list_jobs_response["Libraries"]))
 
 def install_library(library_name: str, library_version: str, library_uri: str = None, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
