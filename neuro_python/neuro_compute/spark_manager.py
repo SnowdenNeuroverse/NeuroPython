@@ -185,10 +185,11 @@ def list_libraries(workspace_id: str = None, cluster_id: str = None, show_all: b
         libraries=[]
         for n in range(0,len(tmp_libraries)):
             i=tmp_libraries[n]
-            if i['Status']=='INSTALLED':
+            if i['Status']=='INSTALLED' or i['Status']=='PENDING':
                 libraries.append(i)
             elif i['Status'] == 'UNINSTALL_ON_RESTART' and len(libraries)>0 and libraries[-1]['LibraryType']==i['LibraryType'] and libraries[-1]['LibraryName']==i['LibraryName']:
                 if libraries[-1]['Status']=='INSTALLED':
+                    libraries[-1]['Status']='PENDING'
                     libraries.append(i)
                 else:
                     libraries[-1]=i
