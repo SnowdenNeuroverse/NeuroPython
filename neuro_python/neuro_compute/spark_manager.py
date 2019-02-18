@@ -183,7 +183,8 @@ def list_libraries(workspace_id: str = None, cluster_id: str = None, show_all: b
     else:
         tmp_libraries=sorted(list_jobs_response["Libraries"],key=lambda x:str(x['LibraryType'])+x['LibraryName']+x['LibraryVersion'])
         libraries=[]
-        for i in range(0,len(tmp_libraries)):
+        for n in range(0,len(tmp_libraries)):
+            i=tmp_libraries[n]
             if i['Status']=='INSTALLED':
                 libraries.append(i)
             elif i['Status'] == 'UNINSTALL_ON_RESTART' and len(libraries)>0 and libraries[-1]['LibraryType']==i['LibraryType'] and libraries[-1]['LibraryName']==i['LibraryName']:
