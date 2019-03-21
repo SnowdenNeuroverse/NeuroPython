@@ -140,6 +140,17 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
         path_list = table_def["FilePath"].split('/')
         partition_path = '/'.join(path_list[5:len(path_list)])
 
+    file_type=table_def['FileType']    
+    if file_type is not None:
+        if file_type == 0:
+            file_type="csv"
+        elif file_type == 1:
+            file_type="parquet"
+        elif file_type ==2:
+            file_type='avro'
+        else:
+            raise Exception("Only csv,parquet and avro file types are supported")
+            
     table_def1 = table_definition(columns,schema_type,allow_data_changes,partition_path,table_name=table_name,file_type=table_def['FileType'])
 
     table_def1["DataStoreId"] = data_stores["DataStores"][0]["DataStoreId"]
