@@ -151,7 +151,7 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
         else:
             raise Exception("Only csv,parquet and avro file types are supported")
             
-    table_def1 = table_definition(columns,schema_type,allow_data_changes,partition_path,table_name=table_name,file_type=table_def['FileType'])
+    table_def1 = table_definition(columns,schema_type,allow_data_changes,partition_path,table_name=table_name,file_type=file_type)
 
     table_def1["DataStoreId"] = data_stores["DataStores"][0]["DataStoreId"]
     table_def1["DestinationTableName"] = table_name
