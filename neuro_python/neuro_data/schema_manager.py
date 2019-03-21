@@ -73,7 +73,7 @@ def column_definition(name: str, column_data_type: str, column_type: str = "Valu
             "ForeignKeyTableName" : foreign_key_table_name}
 
 def table_definition(columns: "List[table_column]", schema_type: str,
-                     allow_data_changes: bool = False, partition_path: str = "", table_name: str = "table_name"):
+                     allow_data_changes: bool = False, partition_path: str = "", table_name: str = "table_name",file_type=None):
     """
     Object to create a Neuroverse data store table
     """
@@ -93,12 +93,22 @@ def table_definition(columns: "List[table_column]", schema_type: str,
             raise Exception("schematype must be \"DataIngestion\", \"TimeSeries\" or \"Processed\"")
     
     file_path = partition_path
+    
+    if file_type is not None:
+        if file_type == "csv":
+            file_type=0
+        elif file_type == "parquet":
+            file_type=1
+        elif file_type =='avro':
+            file_type=2
+        else:
+            raise Exception("Only csv,parquet and avro file types are supported")
 
     return {"DestinationTableDefinitionId" : "", "AllowDataLossChanges" : allow_data_changes,
             "DestinationTableDefinitionColumns" : columns,
             "DestinationTableDefinitionIndexes" : [],
             "DestinationTableName" : "", "DataStoreId" : None, "SchemaType" : schema_type_id,
-            "FilePath" : file_path}
+            "FilePath" : file_path, "FileType": file_type}
 
 def create_table(store_name: str, table_name: str, table_def: "table_definition"):
     """
