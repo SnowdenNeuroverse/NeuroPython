@@ -32,8 +32,9 @@ def export_table(dataframe_name: str, data_store_name: str, table_name: str, par
     This allows for the partition that is used in a spark job run to be determined at runtime (eg. using the current datetime).
     If you want to use a constant partition path string must be wrapped in quotes. eg "'/2018/1'"
     """
-    if not isinstance(eval(partition_path), str):
-        raise Exception("A string is not returned when evaluating: " + partition_path)
+    if partition_path!=None:
+        if not isinstance(eval(partition_path), str):
+            raise Exception("A string is not returned when evaluating: " + partition_path)
     return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPath":partition_path}
 
 def library(library_name: str, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
