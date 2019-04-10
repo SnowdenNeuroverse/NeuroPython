@@ -13,7 +13,7 @@ def script_parameter(name: str, value):
     """
     return {"Name":name,"Value":value}
   
-def import_table(dataframe_name: str, data_store_name: str, table_name: str, partition_paths: "List[str]"):
+def import_table(dataframe_name: str, data_store_name: str, table_name: str, partition_paths: "List[str]" = None, sql_query: str = None):
     """
     Neuroverse datalake data to be used in the pyspark script.
     partition_paths contains a list of string that can be feed into the python eval function and return a str.
@@ -23,17 +23,18 @@ def import_table(dataframe_name: str, data_store_name: str, table_name: str, par
     for path in partition_paths:
         if not isinstance(eval(path), str):
             raise Exception("A string is not returned when evaluating: " + path)
-    return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPaths":partition_paths}
+    return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPaths":partition_paths, "SqlQuery":sql_query}
   
-def export_table(dataframe_name: str, data_store_name: str, table_name: str, partition_path: str):
+def export_table(dataframe_name: str, data_store_name: str, table_name: str, partition_path: str = None):
     """
     pyspark script data to be outputed into a Neuroverse datalake.
     partition_path contains string that can be feed into the python eval function and return a str.
     This allows for the partition that is used in a spark job run to be determined at runtime (eg. using the current datetime).
     If you want to use a constant partition path string must be wrapped in quotes. eg "'/2018/1'"
     """
-    if not isinstance(eval(partition_path), str):
-        raise Exception("A string is not returned when evaluating: " + partition_path)
+    if partition_path!=None:
+        if not isinstance(eval(partition_path), str):
+            raise Exception("A string is not returned when evaluating: " + partition_path)
     return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPath":partition_path}
 
 def library(library_name: str, library_type: int = 0, workspace_id: str = None, cluster_id: str = None):
