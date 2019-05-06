@@ -101,8 +101,10 @@ def table_definition(columns: "List[table_column]", schema_type: str,
             file_type=1
         elif file_type =='avro':
             file_type=2
+        elif file_type =='delta':
+            file_type=3
         else:
-            raise Exception("Only csv,parquet and avro file types are supported")
+            raise Exception("Only csv,parquet, avro and delta file types are supported")
 
     return {"DestinationTableDefinitionId" : "", "AllowDataLossChanges" : allow_data_changes,
             "DestinationTableDefinitionColumns" : columns,
@@ -148,8 +150,10 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
             file_type="parquet"
         elif file_type ==2:
             file_type='avro'
+        elif file_type =='delta':
+            file_type=3
         else:
-            raise Exception("Only csv,parquet and avro file types are supported")
+            raise Exception("Only csv,parquet,avro and delta file types are supported")
             
     table_def1 = table_definition(columns,schema_type,allow_data_changes,partition_path,table_name=table_name,file_type=file_type)
 
