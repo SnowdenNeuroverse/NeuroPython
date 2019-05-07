@@ -150,8 +150,8 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
             file_type="parquet"
         elif file_type ==2:
             file_type='avro'
-        elif file_type =='delta':
-            file_type=3
+        elif file_type ==3:
+            file_type='delta'
         else:
             raise Exception("Only csv,parquet,avro and delta file types are supported")
             
