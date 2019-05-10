@@ -9,6 +9,7 @@ import pandas
 import pyodbc
 from neuro_python import home_directory
 from neuro_python.neuro_call import neuro_call
+import sqlalchemy as db
 
 def transformation(store_name: str, sql_query: "sql_query", sink_table_name: str):
     """
@@ -165,3 +166,15 @@ def sql_to_df(store_name: str, sql_query: "sql_query",use_pyodbc=False):
         df = pandas.read_csv(home_directory() + "/" + "tmp/" + file_name)
         os.remove(home_directory() + "/" + "tmp/" + file_name)
         return df
+def df_to_sql(store_name: str,table_name: str, data: "pandas.DataFrame"):
+    connstrbits=neuro_call('80','datastoremanager','GetDataStores',{'StoreName':store_name})['DataStores'][0]['ConnectionString'].split(';')
+    server=connstrbits[0].split(':')[1].split(',')[0]
+    database=connstrbits[1].split('=')[1]
+    domain=server.split('.')[0]
+    username=database
+    password=connstrbits[3].split('=')[1]
+    driver= 'ODBC Driver 13 for SQL Server'
+    engine = db.create_engine('mssql+pyodbc://%s@%s:%s@%s:1433/%s?driver=%s'%(username,domain,password,server,database,driver), echo=False)
+    data.to_sql(table_name, engine, if_exists='append', index=False)
+    
+    
