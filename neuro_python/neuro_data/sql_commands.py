@@ -135,7 +135,7 @@ def build_sql(sql_query: "sql_query"):
         query+=' order by '+sql_query['OrderByClause']
     return query
 
-def sql_to_df(store_name: str, sql_query: "sql_query",use_pyodbc=True):
+def sql_to_df(store_name: str, sql_query: "sql_query",use_pyodbc=False):
     """
     Execute a sql query and have the result put into a pandas dataframe in the notebook
     """
