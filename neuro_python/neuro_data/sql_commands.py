@@ -175,6 +175,6 @@ def df_to_sql(store_name: str,table_name: str, data: "pandas.DataFrame"):
     password=connstrbits[3].split('=')[1]
     driver= 'ODBC Driver 13 for SQL Server'
     engine = db.create_engine('mssql+pyodbc://%s@%s:%s@%s:1433/%s?driver=%s'%(username,domain,password,server,database,driver), echo=False)
-    data.to_sql(table_name, engine, if_exists='append')
+    data.to_sql(table_name, engine, if_exists='append', index=False)
     
     
