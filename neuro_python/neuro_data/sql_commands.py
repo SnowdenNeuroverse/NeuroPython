@@ -6,6 +6,7 @@ import time
 import os
 import uuid
 import pandas
+import pyodbc
 from neuro_python import home_directory
 from neuro_python.neuro_call import neuro_call
 
@@ -102,22 +103,65 @@ def sql_to_csv(store_name: str, sql_query: "sql_query", file_name: str):
 
     return None
 
-def sql_to_df(store_name: str, sql_query: "sql_query"):
+def build_sql(sql_query: "sql_query"):
+    query=''
+    query+='select '+sql_query['SelectClause']
+    if sql_query['FromTableName'] is not None:
+        query+=' from '+sql_query['FromTableName']
+    else:
+        query+=' from ('+build_sql(sql_query['FromSubQuery'])+')'
+    if sql_query['FromAlias'] is not None:
+         query+=' '+sql_query['FromAlias']
+    #joins
+    if sql_query['Joins'] is not None:
+        for join in sql_query['Joins']:
+            if join['JoinType'] is not None:
+                query+=' '+ join['JoinType'] +' join'
+            else:
+                query+=' join'
+            if join['JoinTableName'] is not None:
+                query+=' '+join['JoinTableName']
+            else:
+                query+=' ('+build_sql(join['JoinSubQuery'])+')'
+            query+=' as '+join['JoinAlias']
+            query+=' on '+join['JoinClause']
+    if sql_query['WhereClause'] is not None:
+        query+=' where '+sql_query['WhereClause']
+    if sql_query['GroupByClause'] is not None:
+        query+=' group by '+sql_query['GroupByClause']
+    if sql_query['HavingClause'] is not None:
+        query+=' having '+sql_query['HavingClause']
+    if sql_query['OrderByClause'] is not None:
+        query+=' order by '+sql_query['OrderByClause']
+    return query
+
+def sql_to_df(store_name: str, sql_query: "sql_query",use_pyodbc=False):
     """
     Execute a sql query and have the result put into a pandas dataframe in the notebook
     """
-    if not os.path.exists(home_directory()+"/tmp"):
-        os.makedirs(home_directory()+"/tmp")
+    if use_pyodbc:
+        connstrbits=neuro_call('80','datastoremanager','GetDataStores',{'StoreName':store_name})['DataStores'][0]['ConnectionString'].split(';')
+        server=connstrbits[0].split(':')[1].split(',')[0]
+        database=connstrbits[1].split('=')[1]
+        username=database
+        password=connstrbits[3].split('=')[1]
+        driver= '{ODBC Driver 13 for SQL Server}'
+        with pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as cnxn:
+            with cnxn.cursor() as cursor:
+                return pandas.read_sql(build_sql(sql_query),cnxn)
+    else:
+        if not os.path.exists(home_directory()+"/tmp"):
+            os.makedirs(home_directory()+"/tmp")
 
-    file_name = str(uuid.uuid4()) + ".csv"
+        file_name = str(uuid.uuid4()) + ".csv"
 
-    count = len(os.getcwd().replace(home_directory(), "").split('/'))-1
+        count = len(os.getcwd().replace(home_directory(), "").split('/'))-1
 
-    backs = ""
-    for c in range(0, count):
-        backs += "../"
-    sql_to_csv(store_name, sql_query, backs + "tmp/" + file_name)
+        backs = ""
+        for c in range(0, count):
+            backs += "../"
+        sql_to_csv(store_name, sql_query, backs + "tmp/" + file_name)
 
-    df = pandas.read_csv(home_directory() + "/" + "tmp/" + file_name)
-    os.remove(home_directory() + "/" + "tmp/" + file_name)
-    return df
+        df = pandas.read_csv(home_directory() + "/" + "tmp/" + file_name)
+        os.remove(home_directory() + "/" + "tmp/" + file_name)
+        return df
