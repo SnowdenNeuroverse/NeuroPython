@@ -140,7 +140,7 @@ def sql_to_df(store_name: str, sql_query: "sql_query",use_pyodbc=True):
     Execute a sql query and have the result put into a pandas dataframe in the notebook
     """
     if use_pyodbc:
-        connstrbits=nc('80','datastoremanager','GetDataStores',{'StoreName':store_name})['DataStores'][0]['ConnectionString'].split(';')
+        connstrbits=neuro_call('80','datastoremanager','GetDataStores',{'StoreName':store_name})['DataStores'][0]['ConnectionString'].split(';')
         server=connstrbits[0].split(':')[1].split(',')[0]
         database=connstrbits[1].split('=')[1]
         username=database
