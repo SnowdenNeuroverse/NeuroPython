@@ -37,7 +37,7 @@ def index_definition(index_name: str, index_column_names: typing.List[str]):
     return {"IndexName" : index_name, "IndexColumns" : columns}
 
 
-def column_definition(name: str, column_data_type: str, column_type: str = "Value", is_required: bool = True):
+def column_definition(name: str, column_data_type: str, column_type: str = "Value", is_required: bool = False):
     """
     Object to create a column in a Neuroverse data store table
     """
