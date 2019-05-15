@@ -51,7 +51,7 @@ def submit_job(job_name: str, pyspark_script: str,
                export_tables: "List[export_table]" = None,
                dependencies: "List[library]" = None,
                workspace_id: str = None, cluster_id: str = None,
-               run_retry: bool = None, max_concurrent_runs: int = None):
+               run_retry: bool = False, max_concurrent_runs: int = None):
     """
     Submit a spark job (template) and recieve back the JobId
     """
