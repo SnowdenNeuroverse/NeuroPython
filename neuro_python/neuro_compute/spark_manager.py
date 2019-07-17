@@ -14,7 +14,7 @@ def script_parameter(name: str, value):
     """
     return {"Name":name,"Value":value}
   
-def import_table(dataframe_name: str, data_store_name: str, table_name: str, partition_paths: "List[str]" = ["'/'"], sql_query: str = None):
+def import_table(dataframe_name: str, data_store_name: str, table_name: str, partition_paths: "List[str]" = ["'/'"], sql_query: str = None, ignore_non_existing_partition_paths: bool = None):
     """
     Neuroverse datalake data to be used in the pyspark script.
     partition_paths contains a list of string that can be feed into the python eval function and return a str.
@@ -25,7 +25,7 @@ def import_table(dataframe_name: str, data_store_name: str, table_name: str, par
         for path in partition_paths:
             if not isinstance(eval(path), str):
                 raise Exception("A string is not returned when evaluating: " + path)
-    return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPaths":partition_paths, "SqlQuery":sql_query}
+    return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPaths":partition_paths, "SqlQuery":sql_query, "IgnoreNonExistingPartitionPaths":ignore_non_existing_partition_paths}
   
 def export_table(dataframe_name: str, data_store_name: str, table_name: str, partition_path: str = "'/'"):
     """
