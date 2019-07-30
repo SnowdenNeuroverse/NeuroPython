@@ -242,3 +242,24 @@ def upgrade_library(library_name: str, library_version: str, force: bool = False
                                          "ForceJobDependenciesUpdate" : force
                                      }
                                    )
+def create_cluster(cluster_name: str, spark_version: str = None, node_type_id: str = None, min_workers: int = None, max_workers: int = None, auto_terminate_in_min: int = None, scheduled_workloads_only: bool = None, default_cluster: bool = None, workspace_id: str = None):
+    """
+    Create a new spark cluster
+    """
+    create_cluster_response = neuro_call("80", "sparkmanager", "CreateCluster", 
+                                     {
+                                         "WorkspaceId" : workspace_id,
+                                         "ClusterName" : cluster_name,
+                                         "SparkVersion" : spark_version,
+                                         "NodeTypeId" : node_type_id,
+                                         "MinWorkers" : min_workers,
+                                         "MaxWorkers" : max_workers,
+                                         "AutoTerminationMinutes" : auto_terminate_in_min,
+                                         "ScheduledWorkLoadsOnly" : scheduled_workloads_only,
+                                         "DefaultCluster" : default_cluster
+                                     }
+                                   )
+    return create_cluster_response
+                   
+                   
+                   
