@@ -411,3 +411,13 @@ def execute_export_table_command(context_id: str, export_table: "export_table"):
                                      }
                                    )
     return execute_export_table_command_response
+
+def cancel_command(command_id: str):
+    """
+    Cancel a running command in a context
+    """
+    cancel_command_response = neuro_call("80", "sparkmanager", "CancelCommand", 
+                                     {
+                                         "CommandId" : command_id
+                                     }
+                                   )
