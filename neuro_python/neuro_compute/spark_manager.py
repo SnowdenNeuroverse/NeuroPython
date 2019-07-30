@@ -324,3 +324,17 @@ def cancel_run(run_id: str):
                                          "RunId" : run_id
                                      }
                                    )
+
+def create_context(context_name:str, cluster_id: str = None, workspace_id: str = None):
+    """
+    Create an interactive spark context
+    """
+    create_context_response = neuro_call("80", "sparkmanager", "CreateContext", 
+                                     {
+                                         "ClusterId" : cluster_id,
+                                         "WorkspaceId" : workspace_id,
+                                         "ScriptLanguage" : "Python",
+                                         "ContextName" : context_name
+                                     }
+                                   )
+    return create_context_response
