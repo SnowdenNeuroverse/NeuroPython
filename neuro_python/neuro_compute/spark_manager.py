@@ -303,3 +303,14 @@ def restart_cluster(cluster_id: str = None, workspace_id: str = None):
                                          "WorkspaceId" : workspace_id
                                      }
                                    )
+
+def start_cluster(cluster_id: str = None, workspace_id: str = None):
+    """
+    Start a cluster
+    """
+    start_cluster_response = neuro_call("80", "sparkmanager", "StartCluster", 
+                                     {
+                                         "ClusterId" : cluster_id,
+                                         "WorkspaceId" : workspace_id
+                                     }
+                                   )
