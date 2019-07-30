@@ -280,3 +280,14 @@ def edit_cluster(cluster_name: str=None, spark_version: str = None, node_type_id
                                          "DefaultCluster" : default_cluster
                                      }
                                    )
+
+def list_clusters(workspace_id: str = None):
+    """
+    List spark clusters
+    """
+    list_clusters_response = neuro_call("80", "sparkmanager", "ListClusters", 
+                                     {
+                                         "WorkspaceId" : workspace_id
+                                     }
+                                   )
+    return list_clusters_response
