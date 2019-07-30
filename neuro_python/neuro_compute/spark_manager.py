@@ -260,6 +260,23 @@ def create_cluster(cluster_name: str, spark_version: str = None, node_type_id: s
                                      }
                                    )
     return create_cluster_response
-                   
-                   
-                   
+
+def edit_cluster(cluster_name: str=None, spark_version: str = None, node_type_id: str = None, min_workers: int = None, max_workers: int = None, auto_terminate_in_min: int = None, scheduled_workloads_only: bool = None, default_cluster: bool = None, cluster_id: str = None, workspace_id: str = None):
+    """
+    Edit a spark cluster
+    This will cause it to restart
+    """
+    edit_cluster_response = neuro_call("80", "sparkmanager", "EditCluster", 
+                                     {
+                                         "ClusterId" : cluster_id,
+                                         "WorkspaceId" : workspace_id,
+                                         "ClusterName" : cluster_name,
+                                         "SparkVersion" : spark_version,
+                                         "NodeTypeId" : node_type_id,
+                                         "MinWorkers" : min_workers,
+                                         "MaxWorkers" : max_workers,
+                                         "AutoTerminationMinutes" : auto_terminate_in_min,
+                                         "ScheduledWorkLoadsOnly" : scheduled_workloads_only,
+                                         "DefaultCluster" : default_cluster
+                                     }
+                                   )
