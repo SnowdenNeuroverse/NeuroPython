@@ -385,3 +385,29 @@ def execute_command(context_id: str, command_name: str, command: str):
                                      }
                                    )
     return execute_command_response
+
+def execute_import_table_command(context_id: str, import_table: "import_table"):
+    """
+    Triggers a command to import a table into a spark context
+    """
+    execute_import_table_command_response = neuro_call("80", "sparkmanager", "ExecuteImportTableCommand", 
+                                     {
+                                         "ContextId" : context_id,
+                                         "ScriptLanguage" : "Python",
+                                         "ImportTable" : import_table
+                                     }
+                                   )
+    return execute_import_table_command_response
+
+def execute_export_table_command(context_id: str, export_table: "export_table"):
+    """
+    Triggers a command to export a table from a spark context
+    """
+    execute_export_table_command_response = neuro_call("80", "sparkmanager", "ExecuteExportTableCommand", 
+                                     {
+                                         "ContextId" : context_id,
+                                         "ScriptLanguage" : "Python",
+                                         "ExportTable" : export_table
+                                     }
+                                   )
+    return execute_export_table_command_response
