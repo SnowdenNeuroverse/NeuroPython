@@ -338,3 +338,36 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
                                      }
                                    )
     return create_context_response
+
+def inspect_context(context_id: str):
+    """
+    Inspect status of an interactive spark context
+    """
+    inspect_context_response = neuro_call("80", "sparkmanager", "InspectContext", 
+                                     {
+                                         "ContextId" : context_id
+                                     }
+                                   )
+    return inspect_context_response
+
+def destroy_context(context_id: str):
+    """
+    Destroy an interactive spark context
+    """
+    destroy_context_response = neuro_call("80", "sparkmanager", "DestroyContext", 
+                                     {
+                                         "ContextId" : context_id
+                                     }
+                                   )
+
+def list_contexts(cluster_id: str = None, workspace_id: str = None):
+    """
+    List interactive spark contexts
+    """
+    list_contexts_response = neuro_call("80", "sparkmanager", "ListContexts", 
+                                     {
+                                         "ClusterId" : cluster_id,
+                                         "WorkspaceId" : workspace_id
+                                     }
+                                   )
+    return list_contexts_response
