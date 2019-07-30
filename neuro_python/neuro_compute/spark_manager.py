@@ -371,3 +371,17 @@ def list_contexts(cluster_id: str = None, workspace_id: str = None):
                                      }
                                    )
     return list_contexts_response
+
+def execute_command(context_id: str, command_name: str, command: str):
+    """
+    Triggers a command to be executed in a spark context
+    """
+    execute_command_response = neuro_call("80", "sparkmanager", "ExecuteCommand", 
+                                     {
+                                         "ContextId" : context_id,
+                                         "CommandName" : command_name,
+                                         "ScriptLanguage" : "Python",
+                                         "Command" : command
+                                     }
+                                   )
+    return execute_command_response
