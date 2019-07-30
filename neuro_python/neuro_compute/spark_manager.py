@@ -421,3 +421,14 @@ def cancel_command(command_id: str):
                                          "CommandId" : command_id
                                      }
                                    )
+
+def list_commands(context_id: str):
+    """
+    List commands in a context
+    """
+    list_commands_response = neuro_call("80", "sparkmanager", "ListCommands", 
+                                     {
+                                         "ContextId" : context_id
+                                     }
+                                   )
+    return list_commands_response
