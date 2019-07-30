@@ -432,3 +432,14 @@ def list_commands(context_id: str):
                                      }
                                    )
     return list_commands_response
+
+def inspect_command(command_id: str):
+    """
+    Inspect the status and result of a command
+    """
+    inspect_command_response = neuro_call("80", "sparkmanager", "InspectCommand", 
+                                     {
+                                         "CommandId" : command_id
+                                     }
+                                   )
+    return inspect_command_response
