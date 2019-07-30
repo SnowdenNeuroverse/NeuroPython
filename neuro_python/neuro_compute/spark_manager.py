@@ -314,3 +314,13 @@ def start_cluster(cluster_id: str = None, workspace_id: str = None):
                                          "WorkspaceId" : workspace_id
                                      }
                                    )
+
+def cancel_run(run_id: str):
+    """
+    Cancel a running instance of a job
+    """
+    cancel_run_response = neuro_call("80", "sparkmanager", "CancelRun", 
+                                     {
+                                         "RunId" : run_id
+                                     }
+                                   )
