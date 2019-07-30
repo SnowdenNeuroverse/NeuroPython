@@ -291,3 +291,15 @@ def list_clusters(workspace_id: str = None):
                                      }
                                    )
     return list_clusters_response
+
+def restart_cluster(cluster_id: str = None, workspace_id: str = None):
+    """
+    Restart a cluster
+    Useful for downgrading libraries
+    """
+    restart_cluster_response = neuro_call("80", "sparkmanager", "RestartCluster", 
+                                     {
+                                         "ClusterId" : cluster_id,
+                                         "WorkspaceId" : workspace_id
+                                     }
+                                   )
