@@ -31,7 +31,7 @@ def import_table(dataframe_name: str, data_store_name: str, table_name: str, par
         for path in partition_paths:
             if not isinstance(eval(path), str):
                 raise Exception("A string is not returned when evaluating: " + path)
-    return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPaths":partition_paths, "SqlQuery":sql_query, "IgnoreNonExistingPartitionPaths":ignore_non_existing_partition_paths}
+    return {"SparkDataFrameName":dataframe_name, "DataStoreName":data_store_name, "TableName":table_name, "PartitionPaths":partition_paths, "SqlQuery":sql_query, "IgnoreNonExistingPaths":ignore_non_existing_partition_paths}
   
 def export_table(dataframe_name: str, data_store_name: str, table_name: str, partition_path: str = "'/'"):
     """
@@ -485,7 +485,10 @@ class SparkMagics(Magics):
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
-        return pd.DataFrame.from_records(result['Result']['Data'])
+        try:
+            return pd.DataFrame.from_records(result['Result']['Data'])
+        except:
+            return result['Result']
 
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -504,10 +507,51 @@ class SparkMagics(Magics):
             time.sleep(1)
         result=inspect_command(command['CommandId'])
         
+        try:
+            t=result['Result']['Data']
+        except:
+            return result['Result']
+        
         if args.out is None:
             print(result['Result']['Data'])
         else:
             self.shell.user_ns[args.out] = result['Result']['Data']
+            
+    @cell_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('--contextid', '-c',
+      help='The id of the context to execute the command in'
+    )
+    def spark_import_table(self, line, cell):
+        args = magic_arguments.parse_argstring(self.spark_display, line)
+        if args.contextid is None:
+            return "Must provide a spark context"
+        command=execute_import_table_command(eval(args.contextid),'1',eval(cell))
+        while inspect_command(command['CommandId'])['Status']!='Finished':
+            time.sleep(1)
+        result=inspect_command(command['CommandId'])
+        try:
+            return pd.DataFrame.from_records(result['Result']['Data'])
+        except:
+            return result['Result']
+    
+    @cell_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('--contextid', '-c',
+      help='The id of the context to execute the command in'
+    )
+    def spark_export_table(self, line, cell):
+        args = magic_arguments.parse_argstring(self.spark_display, line)
+        if args.contextid is None:
+            return "Must provide a spark context"
+        command=execute_export_table_command(eval(args.contextid),'1',eval(cell))
+        while inspect_command(command['CommandId'])['Status']!='Finished':
+            time.sleep(1)
+        result=inspect_command(command['CommandId'])
+        try:
+            return pd.DataFrame.from_records(result['Result']['Data'])
+        except:
+            return result['Result']
 
 ip = get_ipython()
 ip.register_magics(SparkMagics)
