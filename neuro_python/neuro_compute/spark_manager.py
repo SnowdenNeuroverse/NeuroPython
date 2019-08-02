@@ -511,7 +511,7 @@ class SparkMagics(Magics):
         #    t=result['Result']['Data']
         #except:
         #    return result
-        
+        print(result)
         if args.out is None:
             print(result['Result']['Data'])
         else:
