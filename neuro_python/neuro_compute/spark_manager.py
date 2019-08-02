@@ -259,7 +259,9 @@ def create_cluster(cluster_name: str, spark_version: str = None, node_type_id: s
                                          "DefaultCluster" : default_cluster
                                      }
                                    )
-    return create_cluster_response
+    del create_cluster_response['Error']
+    del create_cluster_response['ErrorCode']
+    return create_cluster_response['ClusterId']
 
 def edit_cluster(cluster_name: str=None, spark_version: str = None, node_type_id: str = None, min_workers: int = None, max_workers: int = None, auto_terminate_in_min: int = None, scheduled_workloads_only: bool = None, default_cluster: bool = None, cluster_id: str = None, workspace_id: str = None):
     """
@@ -290,7 +292,9 @@ def list_clusters(workspace_id: str = None):
                                          "WorkspaceId" : workspace_id
                                      }
                                    )
-    return list_clusters_response
+    del list_clusters_response['Error']
+    del list_clusters_response['ErrorCode']
+    return list_clusters_response['Clusters']
 
 def restart_cluster(cluster_id: str = None, workspace_id: str = None):
     """
@@ -337,6 +341,8 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
                                          "ContextName" : context_name
                                      }
                                    )
+    del create_context_response['Error']
+    del create_context_response['ErrorCode']
     return create_context_response
 
 def inspect_context(context_id: str):
@@ -348,6 +354,8 @@ def inspect_context(context_id: str):
                                          "ContextId" : context_id
                                      }
                                    )
+    del inspect_context_response['Error']
+    del inspect_context_response['ErrorCode']
     return inspect_context_response
 
 def destroy_context(context_id: str):
@@ -370,6 +378,8 @@ def list_contexts(cluster_id: str = None, workspace_id: str = None):
                                          "WorkspaceId" : workspace_id
                                      }
                                    )
+    del list_contexts_response['Error']
+    del list_contexts_response['ErrorCode']
     return list_contexts_response
 
 def execute_command(context_id: str, command_name: str, command: str):
@@ -384,6 +394,8 @@ def execute_command(context_id: str, command_name: str, command: str):
                                          "Command" : command
                                      }
                                    )
+    del execute_command_response['Error']
+    del execute_command_response['ErrorCode']
     return execute_command_response
 
 def execute_import_table_command(context_id: str, import_table: "import_table"):
@@ -397,6 +409,8 @@ def execute_import_table_command(context_id: str, import_table: "import_table"):
                                          "ImportTable" : import_table
                                      }
                                    )
+    del execute_import_table_command_response['Error']
+    del execute_import_table_command_response['ErrorCode']
     return execute_import_table_command_response
 
 def execute_export_table_command(context_id: str, export_table: "export_table"):
@@ -410,6 +424,8 @@ def execute_export_table_command(context_id: str, export_table: "export_table"):
                                          "ExportTable" : export_table
                                      }
                                    )
+    del execute_export_table_command_response['Error']
+    del execute_export_table_command_response['ErrorCode']
     return execute_export_table_command_response
 
 def cancel_command(command_id: str):
@@ -431,6 +447,8 @@ def list_commands(context_id: str):
                                          "ContextId" : context_id
                                      }
                                    )
+    del list_commands_response['Error']
+    del list_commands_response['ErrorCode']
     return list_commands_response
 
 def inspect_command(command_id: str):
@@ -442,4 +460,6 @@ def inspect_command(command_id: str):
                                          "CommandId" : command_id
                                      }
                                    )
+    del inspect_command_response['Error']
+    del inspect_command_response['ErrorCode']
     return inspect_command_response
