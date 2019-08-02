@@ -7,6 +7,12 @@ from neuro_python.neuro_call import neuro_call
 import uuid
 import os
 import datetime
+import pandas as pd
+pd.set_option('display.max_rows', 1000)
+import time
+
+from IPython.core import magic_arguments
+from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
 
 def script_parameter(name: str, value):
     """
@@ -463,3 +469,45 @@ def inspect_command(command_id: str):
     del inspect_command_response['Error']
     del inspect_command_response['ErrorCode']
     return inspect_command_response
+
+@magics_class
+class SparkMagics(Magics):
+    @cell_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('--contextid', '-c',
+      help='The id of the context to execute the command in'
+    )
+    def spark_display(self, line, cell):
+        args = magic_arguments.parse_argstring(self.spark_display, line)
+        if args.contextid is None:
+            return "Must provide a spark context"
+        command=spm.execute_command(eval(args.contextid),'1',cell)
+        while spm.inspect_command(command['CommandId'])['Status']!='Finished':
+            time.sleep(1)
+        result=spm.inspect_command(command['CommandId'])
+        return pd.DataFrame.from_records(result['Result']['Data'])
+
+    @cell_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('--contextid', '-c',
+      help='The id of the context to execute the command in'
+    )
+    @magic_arguments.argument('--out', '-o',
+      help='The variable to return the results in'
+    )
+    def spark(self, line, cell):
+        args = magic_arguments.parse_argstring(self.spark, line)
+        if args.contextid is None:
+            return "Must provide a spark context"
+        command=spm.execute_command(eval(args.contextid),'1',cell)
+        while spm.inspect_command(command['CommandId'])['Status']!='Finished':
+            time.sleep(1)
+        result=spm.inspect_command(command['CommandId'])
+        
+        if args.out is None:
+            return result['Result']['Data']
+        else:
+            self.shell.user_ns[args.out] = result['Result']['Data']
+
+ip = get_ipython()
+ip.register_magics(SparkMagics)
