@@ -488,7 +488,7 @@ class SparkMagics(Magics):
         try:
             return pd.DataFrame.from_records(result['Result']['Data'])
         except:
-            return result['Result']
+            return result
 
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -510,7 +510,7 @@ class SparkMagics(Magics):
         try:
             t=result['Result']['Data']
         except:
-            return result['Result']
+            return result
         
         if args.out is None:
             print(result['Result']['Data'])
@@ -533,7 +533,7 @@ class SparkMagics(Magics):
         try:
             return pd.DataFrame.from_records(result['Result']['Data'])
         except:
-            return result['Result']
+            return result
     
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -551,7 +551,7 @@ class SparkMagics(Magics):
         try:
             return pd.DataFrame.from_records(result['Result']['Data'])
         except:
-            return result['Result']
+            return result
 
 ip = get_ipython()
 ip.register_magics(SparkMagics)
