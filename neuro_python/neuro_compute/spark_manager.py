@@ -485,10 +485,10 @@ class SparkMagics(Magics):
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
-        try:
-            return pd.DataFrame.from_records(result['Result']['Data'])
-        except:
+        if result['Result']['ResultType']!='table':
             return result
+        return pd.DataFrame.from_records(result['Result']['Data'])
+
 
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -507,11 +507,8 @@ class SparkMagics(Magics):
             time.sleep(1)
         result=inspect_command(command['CommandId'])
         
-        #try:
-        #    t=result['Result']['Data']
-        #except:
-        #    return result
-        print(result)
+        if result['Result']['ResultType']=='error':
+            return result
         if args.out is None:
             print(result['Result']['Data'])
         else:
@@ -530,10 +527,9 @@ class SparkMagics(Magics):
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
-        try:
-            return pd.DataFrame.from_records(result['Result']['Data'])
-        except:
+        if result['Result']['ResultType']=='error':
             return result
+        print(result['Result']['Data'])
     
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -548,10 +544,9 @@ class SparkMagics(Magics):
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
-        try:
-            return pd.DataFrame.from_records(result['Result']['Data'])
-        except:
+        if result['Result']['ResultType']=='error':
             return result
+        print(result['Result']['Data'])
 
 ip = get_ipython()
 ip.register_magics(SparkMagics)
