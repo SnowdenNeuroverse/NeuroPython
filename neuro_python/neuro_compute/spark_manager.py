@@ -505,7 +505,7 @@ class SparkMagics(Magics):
         result=inspect_command(command['CommandId'])
         
         if args.out is None:
-            return result['Result']['Data']
+            print(result['Result']['Data'])
         else:
             self.shell.user_ns[args.out] = result['Result']['Data']
 
