@@ -481,10 +481,10 @@ class SparkMagics(Magics):
         args = magic_arguments.parse_argstring(self.spark_display, line)
         if args.contextid is None:
             return "Must provide a spark context"
-        command=spm.execute_command(eval(args.contextid),'1',cell)
-        while spm.inspect_command(command['CommandId'])['Status']!='Finished':
+        command=execute_command(eval(args.contextid),'1',cell)
+        while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
-        result=spm.inspect_command(command['CommandId'])
+        result=inspect_command(command['CommandId'])
         return pd.DataFrame.from_records(result['Result']['Data'])
 
     @cell_magic
@@ -499,10 +499,10 @@ class SparkMagics(Magics):
         args = magic_arguments.parse_argstring(self.spark, line)
         if args.contextid is None:
             return "Must provide a spark context"
-        command=spm.execute_command(eval(args.contextid),'1',cell)
-        while spm.inspect_command(command['CommandId'])['Status']!='Finished':
+        command=execute_command(eval(args.contextid),'1',cell)
+        while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
-        result=spm.inspect_command(command['CommandId'])
+        result=inspect_command(command['CommandId'])
         
         if args.out is None:
             return result['Result']['Data']
