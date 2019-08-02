@@ -507,10 +507,10 @@ class SparkMagics(Magics):
             time.sleep(1)
         result=inspect_command(command['CommandId'])
         
-        try:
-            t=result['Result']['Data']
-        except:
-            return result
+        #try:
+        #    t=result['Result']['Data']
+        #except:
+        #    return result
         
         if args.out is None:
             print(result['Result']['Data'])
