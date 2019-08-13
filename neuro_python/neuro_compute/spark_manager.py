@@ -523,7 +523,7 @@ class SparkMagics(Magics):
         args = magic_arguments.parse_argstring(self.spark_display, line)
         if args.contextid is None:
             return "Must provide a spark context"
-        command=execute_import_table_command(eval(args.contextid),'1',eval(cell))
+        command=execute_import_table_command(eval(args.contextid),eval(cell))
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
@@ -540,7 +540,7 @@ class SparkMagics(Magics):
         args = magic_arguments.parse_argstring(self.spark_display, line)
         if args.contextid is None:
             return "Must provide a spark context"
-        command=execute_export_table_command(eval(args.contextid),'1',eval(cell))
+        command=execute_export_table_command(eval(args.contextid),eval(cell))
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
