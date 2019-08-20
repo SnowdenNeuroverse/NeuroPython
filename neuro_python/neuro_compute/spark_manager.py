@@ -324,6 +324,17 @@ def start_cluster(cluster_id: str = None, workspace_id: str = None):
                                          "WorkspaceId" : workspace_id
                                      }
                                    )
+    
+def delete_cluster(cluster_id: str = None, workspace_id: str = None):
+    """
+    Delete a cluster
+    """
+    delete_cluster_response = neuro_call("80", "sparkmanager", "DeleteCluster", 
+                                     {
+                                         "ClusterId" : cluster_id,
+                                         "WorkspaceId" : workspace_id
+                                     }
+                                   )
 
 def cancel_run(run_id: str):
     """
