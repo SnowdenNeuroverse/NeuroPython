@@ -18,6 +18,8 @@ def delay_session_shutdown():
     """
     Delay a notebook session from being shutdown automatically
     """
+    global last_session_delay_run
+    global KeepSessionRunningResponse
     if datetime.datetime.utcnow()-last_session_delay_run>datetime.timedelta(minutes=5):
         last_session_delay_run=datetime.datetime.utcnow()
         KeepSessionRunningResponse=neuro_call("8080", "notebookmanagementservice", "KeepSessionRunning", None)
