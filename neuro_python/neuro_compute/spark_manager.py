@@ -362,7 +362,7 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
                                          "ContextName" : context_name
                                      }
                                    )
-    context_id=create_context_response['ClusterId']
+    context_id=create_context_response['ContextId']
     del create_context_response['Error']
     del create_context_response['ErrorCode']
     return create_context_response
