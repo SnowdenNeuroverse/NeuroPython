@@ -353,6 +353,7 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
     """
     Create an interactive spark context
     """
+    global context_id
     create_context_response = neuro_call("80", "sparkmanager", "CreateContext", 
                                      {
                                          "ClusterId" : cluster_id,
@@ -361,7 +362,7 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
                                          "ContextName" : context_name
                                      }
                                    )
-    global context_id=create_context_response['ClusterId']
+    context_id=create_context_response['ClusterId']
     del create_context_response['Error']
     del create_context_response['ErrorCode']
     return create_context_response
