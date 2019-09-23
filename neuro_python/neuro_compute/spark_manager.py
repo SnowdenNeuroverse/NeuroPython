@@ -500,7 +500,7 @@ class SparkMagics(Magics):
             args = magic_arguments.parse_argstring(self.spark_display, line)
             contextid=args.contextid
         else:
-            contextid=context_id
+            contextid='"%s"'%context_id
         command=execute_command(eval(contextid),'1',cell)
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
@@ -526,10 +526,10 @@ class SparkMagics(Magics):
             args = magic_arguments.parse_argstring(self.spark, line)
             contextid=args.contextid
             if contextid==None:
-                contextid=context_id
+                contextid='"%s"'%context_id
             out=args.out
         else:
-            contextid=context_id
+            contextid='"%s"'%context_id
         command=execute_command(eval(contextid),'1',cell)
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
@@ -554,7 +554,7 @@ class SparkMagics(Magics):
             args = magic_arguments.parse_argstring(self.spark_import_table, line)
             contextid=args.contextid
         else:
-            contextid=context_id
+            contextid='"%s"'%context_id
         command=execute_import_table_command(eval(contextid),eval(cell))
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
@@ -575,7 +575,7 @@ class SparkMagics(Magics):
             args = magic_arguments.parse_argstring(self.spark_export_table, line)
             contextid=args.contextid
         else:
-            contextid=context_id
+            contextid='"%s"'%context_id
         command=execute_export_table_command(eval(contextid),eval(cell))
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
