@@ -21,8 +21,6 @@ def delay_session_shutdown():
     """
     Delay a notebook session from being shutdown automatically
     """
-    a=[]
-    a[1]=0
     global last_session_delay_run
     global KeepSessionRunningResponse
     if datetime.datetime.utcnow()-last_session_delay_run>datetime.timedelta(minutes=5):
