@@ -496,7 +496,10 @@ class SparkMagics(Magics):
     @magic_arguments.argument('--dataframe', '-df',
       help='DataFrame to be printed'
     )
-    def spark_display(self, line):
+    @magic_arguments.argument('--out', '-o',
+      help='The variable to return the results in'
+    )
+    def spark_pandas(self, line):
         global context_id
         contextid=''
         dataframe=''
@@ -522,8 +525,11 @@ class SparkMagics(Magics):
         while inspect_command(command2['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result2=inspect_command(command2['CommandId'])
-        
-        return pd.DataFrame.from_records(result2['Result']['Data'],columns=columns)
+
+        if args.out is None:
+            return pd.DataFrame.from_records(result2['Result']['Data'],columns=columns)
+        else:
+            self.shell.user_ns[args.out] = pd.DataFrame.from_records(result2['Result']['Data'],columns=columns)
 
 
     @cell_magic
