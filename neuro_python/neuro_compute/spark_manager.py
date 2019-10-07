@@ -488,26 +488,42 @@ def inspect_command(command_id: str):
 
 @magics_class
 class SparkMagics(Magics):
-    @cell_magic
+    @line_magic
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('--contextid', '-c',
       help='The id of the context to execute the command in'
     )
-    def spark_display(self, line, cell):
+    @magic_arguments.argument('--dataframe', '-df',
+      help='DataFrame to be printed'
+    )
+    def spark_display(self, line):
         global context_id
         contextid=''
-        if line!=None and line!='':
-            args = magic_arguments.parse_argstring(self.spark_display, line)
+        dataframe=''
+        args = magic_arguments.parse_argstring(self.spark_display, line)
+        if args.contextid!=None:
             contextid=args.contextid
         else:
             contextid='"%s"'%context_id
-        command=execute_command(eval(contextid),'1',cell)
+        if args.dataframe!=None:
+            dataframe=args.dataframe
+        else:
+            raise Exception('dataframe parameter must be provided')
+        command=execute_command(eval(contextid),'1','%s.schema'%dataframe)
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
-        if result['Result']['ResultType']!='table':
-            return result
-        return pd.DataFrame.from_records(result['Result']['Data'])
+        
+        columns=[]
+        for col in result['Result']['Data'].split('StructField(')[1:]:
+            columns.append(col.split(',')[0])
+        
+        command2=execute_command(eval(contextid),'1','display(%s)'%dataframe)
+        while inspect_command(command2['CommandId'])['Status']!='Finished':
+            time.sleep(1)
+        result2=inspect_command(command2['CommandId'])
+        
+        return pd.DataFrame.from_records(result2['Result']['Data'],columns=columns)
 
 
     @cell_magic
