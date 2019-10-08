@@ -14,6 +14,9 @@ import time
 from IPython.core import magic_arguments
 from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
 
+#Default context id
+context_id=''
+
 def script_parameter(name: str, value):
     """
     Cmd line parameter value to be used in the pyspark script. eg sys.argv[1]
@@ -350,6 +353,7 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
     """
     Create an interactive spark context
     """
+    global context_id
     create_context_response = neuro_call("80", "sparkmanager", "CreateContext", 
                                      {
                                          "ClusterId" : cluster_id,
@@ -358,6 +362,7 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
                                          "ContextName" : context_name
                                      }
                                    )
+    context_id=create_context_response['ContextId']
     del create_context_response['Error']
     del create_context_response['ErrorCode']
     return create_context_response
@@ -483,22 +488,48 @@ def inspect_command(command_id: str):
 
 @magics_class
 class SparkMagics(Magics):
-    @cell_magic
+    @line_magic
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('--contextid', '-c',
       help='The id of the context to execute the command in'
     )
-    def spark_display(self, line, cell):
-        args = magic_arguments.parse_argstring(self.spark_display, line)
-        if args.contextid is None:
-            return "Must provide a spark context"
-        command=execute_command(eval(args.contextid),'1',cell)
+    @magic_arguments.argument('--dataframe', '-df',
+      help='DataFrame to be printed'
+    )
+    @magic_arguments.argument('--out', '-o',
+      help='The variable to return the results in'
+    )
+    def spark_pandas(self, line):
+        global context_id
+        contextid=''
+        dataframe=''
+        args = magic_arguments.parse_argstring(self.spark_pandas, line)
+        if args.contextid!=None:
+            contextid=args.contextid
+        else:
+            contextid='"%s"'%context_id
+        if args.dataframe!=None:
+            dataframe=args.dataframe
+        else:
+            raise Exception('dataframe parameter must be provided')
+        command=execute_command(eval(contextid),'1','%s.schema'%dataframe)
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
-        if result['Result']['ResultType']!='table':
-            return result
-        return pd.DataFrame.from_records(result['Result']['Data'])
+        
+        columns=[]
+        for col in result['Result']['Data'].split('StructField(')[1:]:
+            columns.append(col.split(',')[0])
+        
+        command2=execute_command(eval(contextid),'1','display(%s)'%dataframe)
+        while inspect_command(command2['CommandId'])['Status']!='Finished':
+            time.sleep(1)
+        result2=inspect_command(command2['CommandId'])
+
+        if args.out is None:
+            return pd.DataFrame.from_records(result2['Result']['Data'],columns=columns)
+        else:
+            self.shell.user_ns[args.out] = pd.DataFrame.from_records(result2['Result']['Data'],columns=columns)
 
 
     @cell_magic
@@ -510,20 +541,28 @@ class SparkMagics(Magics):
       help='The variable to return the results in'
     )
     def spark(self, line, cell):
-        args = magic_arguments.parse_argstring(self.spark, line)
-        if args.contextid is None:
-            return "Must provide a spark context"
-        command=execute_command(eval(args.contextid),'1',cell)
+        global context_id
+        contextid=None
+        out=None
+        if line!=None and line!='':
+            args = magic_arguments.parse_argstring(self.spark, line)
+            contextid=args.contextid
+            if contextid==None:
+                contextid='"%s"'%context_id
+            out=args.out
+        else:
+            contextid='"%s"'%context_id
+        command=execute_command(eval(contextid),'1',cell)
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
         
         if result['Result']['ResultType']=='error':
             return result
-        if args.out is None:
+        if out is None:
             print(result['Result']['Data'])
         else:
-            self.shell.user_ns[args.out] = result['Result']['Data']
+            self.shell.user_ns[out] = result['Result']['Data']
             
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -531,10 +570,14 @@ class SparkMagics(Magics):
       help='The id of the context to execute the command in'
     )
     def spark_import_table(self, line, cell):
-        args = magic_arguments.parse_argstring(self.spark_display, line)
-        if args.contextid is None:
-            return "Must provide a spark context"
-        command=execute_import_table_command(eval(args.contextid),eval(cell))
+        global context_id
+        contextid=''
+        if line!=None and line!='':
+            args = magic_arguments.parse_argstring(self.spark_import_table, line)
+            contextid=args.contextid
+        else:
+            contextid='"%s"'%context_id
+        command=execute_import_table_command(eval(contextid),eval(cell))
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
@@ -548,10 +591,14 @@ class SparkMagics(Magics):
       help='The id of the context to execute the command in'
     )
     def spark_export_table(self, line, cell):
-        args = magic_arguments.parse_argstring(self.spark_display, line)
-        if args.contextid is None:
-            return "Must provide a spark context"
-        command=execute_export_table_command(eval(args.contextid),eval(cell))
+        global context_id
+        contextid=''
+        if line!=None and line!='':
+            args = magic_arguments.parse_argstring(self.spark_export_table, line)
+            contextid=args.contextid
+        else:
+            contextid='"%s"'%context_id
+        command=execute_export_table_command(eval(contextid),eval(cell))
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
