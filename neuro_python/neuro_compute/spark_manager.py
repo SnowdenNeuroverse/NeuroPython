@@ -503,7 +503,7 @@ class SparkMagics(Magics):
         global context_id
         contextid=''
         dataframe=''
-        args = magic_arguments.parse_argstring(self.spark_display, line)
+        args = magic_arguments.parse_argstring(self.spark_pandas, line)
         if args.contextid!=None:
             contextid=args.contextid
         else:
