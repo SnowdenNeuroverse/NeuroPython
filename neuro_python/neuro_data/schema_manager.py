@@ -242,12 +242,20 @@ def create_stream_to_table_mapping(store_name: str, table_name: str, mapping_nam
                 "MappingName" : mapping_name,
                 "DataPopulationMappingSourceColumns" : column_pairs})
 
-def delete_processed_table(store_name: str, table_name: str):
+def delete_processed_table(store_name: str, table_name: str, force=True):
     """
     Delete a table with schema type "Processed" from a Neuroverse data store
     """
-    table_def = get_table_definition(store_name, table_name)
-    if table_def["SchemaType"] != 3:
-        raise Exception("Table schema type is not processed")
-    neuro_call("80", "datapopulation", "DeleteDestinationTableDefinition",
-               {"DestinationTableDefinitionId" : table_def["DestinationTableDefinitionId"]})
+    if force:
+        delete_table='y'
+    else:
+        delete_table=input('Are you sure you want to delete %s:%s (y or n)'%(store_name,table_name))
+    if delete_table=='y':
+        table_def = get_table_definition(store_name, table_name)
+        if table_def["SchemaType"] != 3:
+            raise Exception("Table schema type is not processed")
+        neuro_call("80", "datapopulation", "DeleteDestinationTableDefinition",
+                   {"DestinationTableDefinitionId" : table_def["DestinationTableDefinitionId"]})
+        print('Table is deleted')
+    else:
+        print('Table is not deleted')
