@@ -512,7 +512,7 @@ class SparkMagics(Magics):
             dataframe=args.dataframe
         else:
             raise Exception('dataframe parameter must be provided')
-        command=execute_command(eval(contextid),'1','%s.schema'%dataframe)
+        command=execute_command(eval(contextid),'1','str(%s.schema)'%dataframe)
         while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
