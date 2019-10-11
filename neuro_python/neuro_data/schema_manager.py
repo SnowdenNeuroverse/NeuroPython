@@ -190,7 +190,7 @@ def list_tables(store_name: str, table_name: str='', schema_type: str=''):
 
     table_defs = neuro_call("80", "DataPopulation", "GetTableInfos", {"DataStoreId" : data_stores[0]["DataStoreId"]})
     
-    return table_defs['TableInfos']
+    return [{'TableId':table['TableId'],'TableName':table['TableName'],'SchemaType':SCHEMA_TYPE_MAP_REV[table['TableTypeId']]} for table in table_defs['TableInfos']]
     
 def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[index_definition]"):
     """
