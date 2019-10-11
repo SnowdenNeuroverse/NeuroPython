@@ -10,6 +10,10 @@ import datetime
 import pandas as pd
 pd.set_option('display.max_rows', 1000)
 import time
+import threading
+from IPython.display import display,HTML,TextDisplayObject
+import ipywidgets as widgets
+import uuid
 
 from IPython.core import magic_arguments
 from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
