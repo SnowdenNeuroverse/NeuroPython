@@ -502,14 +502,12 @@ def spark_magic(button,progress,command,out,output,user_ns,silent=False):
         if stop[0]==1:
             cancel_command(command['CommandId'])
             stop[0]=1
-            if not silent:
-                output.append_display_data('Cancelled')
+            output.append_display_data('Cancelled')
         else:
             result=inspect_command(command['CommandId'])
             if result['Result']['ResultType']=='error':
                 stop[0]=1
-                if not silent:
-                    output.append_display_data(HTML(result['Result']['Summary']))
+                output.append_display_data(HTML(result['Result']['Summary']))
             else:
                 if out is None:
                     stop[0]=1
@@ -582,11 +580,14 @@ class SparkMagics(Magics):
     @magic_arguments.argument('--dataframe', '-df',
       help='DataFrame to be assigned into'
     )
+    @magic_arguments.argument('--out', '-o',
+      help='The variable to return the results in'
+    )
     def spark_sql(self, line, cell):
         global context_id
         contextid=None
-        out=None
         args = magic_arguments.parse_argstring(self.spark_sql, line)
+        out=args.out
         if line!=None and line!='':
             contextid=args.contextid
             if contextid==None:
@@ -595,9 +596,11 @@ class SparkMagics(Magics):
             contextid='"%s"'%context_id
         if args.dataframe!=None:
             dataframe=args.dataframe
+            code = ('%s=spark.sql("%s")\n%s.registerTempTable("%s")'%(dataframe,cell.replace('\n',' '),dataframe,dataframe))
         else:
-            raise Exception('dataframe parameter must be provided')
-        code = ('%s=spark.sql("%s")\n%s.registerTempTable("%s")'%(dataframe,cell.replace('\n',' '),dataframe,dataframe))
+            dataframe="df%s"%(str(uuid.uuid4()).replace('-','_'))
+            code = ('%s=spark.sql("%s")'%(dataframe,cell.replace('\n',' ')))
+        
         command=execute_command(eval(contextid),'1',code)
         
         output = widgets.Output()
@@ -605,7 +608,30 @@ class SparkMagics(Magics):
         progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
         display(widgets.VBox([output,widgets.HBox([widgets.Label("CommandId: %s"%command['CommandId']),progress,button])]))
         
-        spark_magic(button,progress,command,out,output,self.shell.user_ns)
+        stop=spark_magic(button,progress,command,out,output,self.shell.user_ns,silent=True)
+        while stop[0]==0:
+            time.sleep(1)
+        if stop[1]==1:
+            if args.out!=None or args.dataframe==None:
+                command=execute_command(eval(contextid),'1','str(%s.schema)'%dataframe)
+                schema_out='A'+str(uuid.uuid4())
+                stop=spark_magic(button,progress,command,schema_out,output,self.shell.user_ns,silent=True)
+                while stop[0]==0:
+                    time.sleep(1)
+                if stop[1]==1:
+                    columns=[]
+                    for col in self.shell.user_ns[schema_out].split('StructField(')[1:]:
+                        columns.append(col.split(',')[0])
+                    command2=execute_command(eval(contextid),'1','display(%s)'%dataframe)
+                    data_out='A'+str(uuid.uuid4())
+                    stop=spark_magic(button,progress,command2,data_out,output,self.shell.user_ns,silent=True)
+                    while stop[0]==0:
+                        time.sleep(1)
+                    if stop[1]==1:
+                        if args.out is None:
+                            output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns).to_html()))
+                        else:
+                            self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns)
     
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -713,6 +739,6 @@ class SparkMagics(Magics):
                     output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns).to_html()))
                 else:
                     self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns)
-
+        
 ip = get_ipython()
 ip.register_magics(SparkMagics)
