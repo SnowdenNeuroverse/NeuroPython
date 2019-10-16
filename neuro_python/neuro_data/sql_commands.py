@@ -11,6 +11,9 @@ from neuro_python import home_directory
 from neuro_python.neuro_call import neuro_call
 import sqlalchemy as db
 
+from IPython.core import magic_arguments
+from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
+
 def transformation(store_name: str, sql_query: "sql_query", sink_table_name: str):
     """
     Execute a sql query on a database and store the results in another table in the same database
@@ -176,5 +179,52 @@ def df_to_sql(store_name: str,table_name: str, data: "pandas.DataFrame"):
     driver= 'ODBC Driver 13 for SQL Server'
     engine = db.create_engine('mssql+pyodbc://%s@%s:%s@%s:1433/%s?driver=%s'%(username,domain,password,server,database,driver), echo=False)
     data.to_sql(table_name, engine, if_exists='append', index=False)
-    
-    
+
+def run_sql(store_name: str, sql_query: str, return_df=False):
+    """
+    Execute a sql query and have the result put into a pandas dataframe in the notebook
+    """
+    connstrbits=neuro_call('80','datastoremanager','GetDataStores',{'StoreName':store_name})['DataStores'][0]['ConnectionString'].split(';')
+    server=connstrbits[0].split(':')[1].split(',')[0]
+    database=connstrbits[1].split('=')[1]
+    username=database
+    password=connstrbits[3].split('=')[1]
+    driver= '{ODBC Driver 13 for SQL Server}'
+    with pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as cnxn:
+        with cnxn.cursor() as cursor:
+            if return_df:
+                return pandas.read_sql(sql_query,cnxn)
+            else:
+                cursor.execute(sql_query)
+                
+
+@magics_class
+class SqlMagics(Magics):
+    @cell_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('--storename', '-sn',
+      help='The Data Store Name'
+    )
+    @magic_arguments.argument('--out', '-o',
+      help='The variable to return the results in'
+    )
+    def sql(self, line, cell):
+        global context_id
+        storename=None
+        out=None
+        args = magic_arguments.parse_argstring(self.sql, line)
+        storename=args.storename
+        if storename==None:
+            raise Exception('Data store name must be provided')
+        out=args.out
+        if cell.strip().lower().startswith('select'):
+            df=run_sql(storename,cell.replace('\n',' '),return_df=True)
+        else:
+            df=run_sql(storename,cell.replace('\n',' '))
+        if out!=None:
+            self.shell.user_ns[out]=df
+        else:
+            return df
+                
+ip = get_ipython()
+ip.register_magics(SqlMagics)
