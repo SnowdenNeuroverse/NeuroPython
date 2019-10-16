@@ -10,6 +10,10 @@ import datetime
 import pandas as pd
 pd.set_option('display.max_rows', 1000)
 import time
+import threading
+from IPython.display import display,HTML,TextDisplayObject
+import ipywidgets as widgets
+import uuid
 
 from IPython.core import magic_arguments
 from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
@@ -486,52 +490,59 @@ def inspect_command(command_id: str):
     del inspect_command_response['ErrorCode']
     return inspect_command_response
 
+def spark_magic(button,progress,command,out,output,user_ns,silent=False):
+    stop=[0,0]
+    
+    def on_button_clicked(b):
+        stop[0]=1
+    button.on_click(on_button_clicked)
+    def work(command,stop,out,output,user_ns,silent):
+        while inspect_command(command['CommandId'])['Status']!='Finished' and stop[0]==0:
+            time.sleep(1)
+        if stop[0]==1:
+            cancel_command(command['CommandId'])
+            stop[0]=1
+            output.append_display_data('Cancelled')
+        else:
+            result=inspect_command(command['CommandId'])
+            if result['Result']['ResultType']=='error':
+                stop[0]=1
+                output.append_display_data(HTML(result['Result']['Summary']))
+            else:
+                if out is None:
+                    stop[0]=1
+                    stop[1]=1
+                    if not silent:
+                        if result['Result']['Data']!='':
+                            output.append_display_data(result['Result']['Data'])
+                else:
+                    stop[0]=1
+                    stop[1]=1
+                    user_ns[out] = result['Result']['Data']
+
+    
+    thread = threading.Thread(target=work, args=(command,stop,out,output,user_ns,silent))
+    thread.start()
+
+    
+
+    def progress_work(progress,stop):
+        while stop[0]==0:
+            progress.value = 0
+            total = 100
+            for i in range(total):
+                time.sleep(0.02)
+                progress.value = float(i+1)/total
+                if stop[0]==1:
+                    break
+        progress.value = 1
+
+    thread1 = threading.Thread(target=progress_work, args=(progress,stop,))
+    thread1.start()
+    return stop
+
 @magics_class
 class SparkMagics(Magics):
-    @line_magic
-    @magic_arguments.magic_arguments()
-    @magic_arguments.argument('--contextid', '-c',
-      help='The id of the context to execute the command in'
-    )
-    @magic_arguments.argument('--dataframe', '-df',
-      help='DataFrame to be printed'
-    )
-    @magic_arguments.argument('--out', '-o',
-      help='The variable to return the results in'
-    )
-    def spark_pandas(self, line):
-        global context_id
-        contextid=''
-        dataframe=''
-        args = magic_arguments.parse_argstring(self.spark_pandas, line)
-        if args.contextid!=None:
-            contextid=args.contextid
-        else:
-            contextid='"%s"'%context_id
-        if args.dataframe!=None:
-            dataframe=args.dataframe
-        else:
-            raise Exception('dataframe parameter must be provided')
-        command=execute_command(eval(contextid),'1','str(%s.schema)'%dataframe)
-        while inspect_command(command['CommandId'])['Status']!='Finished':
-            time.sleep(1)
-        result=inspect_command(command['CommandId'])
-        
-        columns=[]
-        for col in result['Result']['Data'].split('StructField(')[1:]:
-            columns.append(col.split(',')[0])
-        
-        command2=execute_command(eval(contextid),'1','display(%s)'%dataframe)
-        while inspect_command(command2['CommandId'])['Status']!='Finished':
-            time.sleep(1)
-        result2=inspect_command(command2['CommandId'])
-
-        if args.out is None:
-            return pd.DataFrame.from_records(result2['Result']['Data'],columns=columns)
-        else:
-            self.shell.user_ns[args.out] = pd.DataFrame.from_records(result2['Result']['Data'],columns=columns)
-
-
     @cell_magic
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('--contextid', '-c',
@@ -553,17 +564,75 @@ class SparkMagics(Magics):
         else:
             contextid='"%s"'%context_id
         command=execute_command(eval(contextid),'1',cell)
-        while inspect_command(command['CommandId'])['Status']!='Finished':
-            time.sleep(1)
-        result=inspect_command(command['CommandId'])
         
-        if result['Result']['ResultType']=='error':
-            return result
-        if out is None:
-            print(result['Result']['Data'])
+        output = widgets.Output()
+        button = widgets.Button(description="Cancel")
+        progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
+        display(widgets.VBox([output,widgets.HBox([widgets.Label("CommandId: %s"%command['CommandId']),progress,button])]))
+        
+        spark_magic(button,progress,command,out,output,self.shell.user_ns)
+    
+    @cell_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('--contextid', '-c',
+      help='The id of the context to execute the command in'
+    )
+    @magic_arguments.argument('--dataframe', '-df',
+      help='DataFrame to be assigned into'
+    )
+    @magic_arguments.argument('--out', '-o',
+      help='The variable to return the results in'
+    )
+    def spark_sql(self, line, cell):
+        global context_id
+        contextid=None
+        args = magic_arguments.parse_argstring(self.spark_sql, line)
+        out=args.out
+        if line!=None and line!='':
+            contextid=args.contextid
+            if contextid==None:
+                contextid='"%s"'%context_id
         else:
-            self.shell.user_ns[out] = result['Result']['Data']
-            
+            contextid='"%s"'%context_id
+        if args.dataframe!=None:
+            dataframe=args.dataframe
+            code = ('%s=spark.sql("%s")\n%s.registerTempTable("%s")'%(dataframe,cell.replace('\n',' '),dataframe,dataframe))
+        else:
+            dataframe="df%s"%(str(uuid.uuid4()).replace('-','_'))
+            code = ('%s=spark.sql("%s")'%(dataframe,cell.replace('\n',' ')))
+        
+        command=execute_command(eval(contextid),'1',code)
+        
+        output = widgets.Output()
+        button = widgets.Button(description="Cancel")
+        progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
+        display(widgets.VBox([output,widgets.HBox([widgets.Label("CommandId: %s"%command['CommandId']),progress,button])]))
+        
+        stop=spark_magic(button,progress,command,out,output,self.shell.user_ns,silent=True)
+        while stop[0]==0:
+            time.sleep(1)
+        if stop[1]==1:
+            if args.out!=None or args.dataframe==None:
+                command=execute_command(eval(contextid),'1','str(%s.schema)'%dataframe)
+                schema_out='A'+str(uuid.uuid4())
+                stop=spark_magic(button,progress,command,schema_out,output,self.shell.user_ns,silent=True)
+                while stop[0]==0:
+                    time.sleep(1)
+                if stop[1]==1:
+                    columns=[]
+                    for col in self.shell.user_ns[schema_out].split('StructField(')[1:]:
+                        columns.append(col.split(',')[0])
+                    command2=execute_command(eval(contextid),'1','display(%s)'%dataframe)
+                    data_out='A'+str(uuid.uuid4())
+                    stop=spark_magic(button,progress,command2,data_out,output,self.shell.user_ns,silent=True)
+                    while stop[0]==0:
+                        time.sleep(1)
+                    if stop[1]==1:
+                        if args.out is None:
+                            output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns).to_html()))
+                        else:
+                            self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns)
+    
     @cell_magic
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('--contextid', '-c',
@@ -578,13 +647,23 @@ class SparkMagics(Magics):
         else:
             contextid='"%s"'%context_id
         command=execute_import_table_command(eval(contextid),eval(cell))
-        while inspect_command(command['CommandId'])['Status']!='Finished':
+        
+        output = widgets.Output()
+        button = widgets.Button(description="Cancel")
+        progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
+        display(widgets.VBox([output,widgets.HBox([widgets.Label("CommandId: %s"%command['CommandId']),progress,button])]))
+        
+        stop=spark_magic(button,progress,command,None,output,self.shell.user_ns,silent=True)
+        while stop[0]==0:
             time.sleep(1)
-        result=inspect_command(command['CommandId'])
-        if result['Result']['ResultType']=='error':
-            return result
-        print(result['Result']['Data'])
-    
+        
+        if stop[1]==1:
+            temp_import_table=eval(cell)
+            code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
+            command1=execute_command(eval(contextid),'1',code)
+            stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
+        
+        
     @cell_magic
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('--contextid', '-c',
@@ -599,12 +678,67 @@ class SparkMagics(Magics):
         else:
             contextid='"%s"'%context_id
         command=execute_export_table_command(eval(contextid),eval(cell))
-        while inspect_command(command['CommandId'])['Status']!='Finished':
+        
+        output = widgets.Output()
+        button = widgets.Button(description="Cancel")
+        progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
+        display(widgets.VBox([output,widgets.HBox([widgets.Label("CommandId: %s"%command['CommandId']),progress,button])]))
+        
+        spark_magic(button,progress,command,None,output,self.shell.user_ns)
+        
+    @line_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('--contextid', '-c',
+      help='The id of the context to execute the command in'
+    )
+    @magic_arguments.argument('--dataframe', '-df',
+      help='DataFrame to be printed'
+    )
+    @magic_arguments.argument('--out', '-o',
+      help='The variable to return the results in'
+    )
+    def spark_pandas(self, line):
+        global context_id
+        contextid=''
+        dataframe=''
+        args = magic_arguments.parse_argstring(self.spark_pandas, line)
+        out=args.out
+        if args.contextid!=None:
+            contextid=args.contextid
+        else:
+            contextid='"%s"'%context_id
+        if args.dataframe!=None:
+            dataframe=args.dataframe
+        else:
+            raise Exception('dataframe parameter must be provided')
+        command=execute_command(eval(contextid),'1','str(%s.schema)'%dataframe)
+        output = widgets.Output()
+        button = widgets.Button(description="Cancel")
+        progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
+        display(widgets.VBox([output,widgets.HBox([widgets.Label("CommandId: %s"%command['CommandId']),progress,button])]))
+        
+        schema_out='A'+str(uuid.uuid4())
+        stop=spark_magic(button,progress,command,schema_out,output,self.shell.user_ns,silent=True)
+        
+        while stop[0]==0:
             time.sleep(1)
-        result=inspect_command(command['CommandId'])
-        if result['Result']['ResultType']=='error':
-            return result
-        print(result['Result']['Data'])
+        
+        if stop[1]==1:
+            columns=[]
+            for col in self.shell.user_ns[schema_out].split('StructField(')[1:]:
+                columns.append(col.split(',')[0])
 
+            command2=execute_command(eval(contextid),'1','display(%s)'%dataframe)
+            data_out='A'+str(uuid.uuid4())
+            stop=spark_magic(button,progress,command2,data_out,output,self.shell.user_ns,silent=True)
+            while stop[0]==0:
+                time.sleep(1)
+        
+            if stop[1]==1:
+                if args.out is None:
+                    output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns).to_html()))
+                else:
+                    self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns)
+        
 ip = get_ipython()
 ip.register_magics(SparkMagics)
