@@ -545,24 +545,14 @@ def spark_magic(button,progress,command,out,output,user_ns,silent=False):
 class SparkMagics(Magics):
     @cell_magic
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('--contextid', '-c',
-      help='The id of the context to execute the command in'
-    )
     @magic_arguments.argument('--out', '-o',
       help='The variable to return the results in'
     )
     def spark(self, line, cell):
         global context_id
-        contextid=None
-        out=None
-        if line!=None and line!='':
-            args = magic_arguments.parse_argstring(self.spark, line)
-            contextid=args.contextid
-            if contextid==None:
-                contextid='"%s"'%context_id
-            out=args.out
-        else:
-            contextid='"%s"'%context_id
+        args = magic_arguments.parse_argstring(self.spark, line)
+        contextid='"%s"'%context_id
+        out=args.out
         command=execute_command(eval(contextid),'1',cell)
         
         output = widgets.Output()
@@ -574,9 +564,6 @@ class SparkMagics(Magics):
     
     @cell_magic
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('--contextid', '-c',
-      help='The id of the context to execute the command in'
-    )
     @magic_arguments.argument('--dataframe', '-df',
       help='DataFrame to be assigned into'
     )
@@ -587,13 +574,8 @@ class SparkMagics(Magics):
         global context_id
         contextid=None
         args = magic_arguments.parse_argstring(self.spark_sql, line)
+        contextid='"%s"'%context_id
         out=args.out
-        if line!=None and line!='':
-            contextid=args.contextid
-            if contextid==None:
-                contextid='"%s"'%context_id
-        else:
-            contextid='"%s"'%context_id
         if args.dataframe!=None:
             dataframe=args.dataframe
             code = ('%s=spark.sql("%s")\n%s.registerTempTable("%s")'%(dataframe,cell.replace('\n',' '),dataframe,dataframe))
@@ -632,65 +614,94 @@ class SparkMagics(Magics):
                             output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns).to_html()))
                         else:
                             self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns)
-    
+    @line_magic
     @cell_magic
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('--contextid', '-c',
-      help='The id of the context to execute the command in'
+    @magic_arguments.argument('--dataframe', '-df',
+      help='The dataframe name to store the table in'
     )
-    def spark_import_table(self, line, cell):
+    @magic_arguments.argument('--storename', '-sn',
+      help='The data store name'
+    )
+    @magic_arguments.argument('--tablename', '-tn',
+      help='The table name'
+    )
+    @magic_arguments.argument('--partitionpaths', '-pp',
+      help='The partition paths'
+    )
+    @magic_arguments.argument('--sqlquery', '-sq',
+      help='The sql query'
+    )
+    def spark_import_table(self, line, cell=None):
         global context_id
-        contextid=''
-        if line!=None and line!='':
-            args = magic_arguments.parse_argstring(self.spark_import_table, line)
-            contextid=args.contextid
-        else:
-            contextid='"%s"'%context_id
-        command=execute_import_table_command(eval(contextid),eval(cell))
-        
+        args = magic_arguments.parse_argstring(self.spark_import_table, line)
+        contextid='"%s"'%context_id
         output = widgets.Output()
         button = widgets.Button(description="Cancel")
         progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
-        display(widgets.VBox([output,widgets.HBox([widgets.Label("CommandId: %s"%command['CommandId']),progress,button])]))
+        display(widgets.VBox([output,widgets.HBox([widgets.Label("Command: Import tables"),progress,button])]))
         
-        stop=spark_magic(button,progress,command,None,output,self.shell.user_ns,silent=True)
-        while stop[0]==0:
-            time.sleep(1)
+        if args.dataframe!=None:
+            temp_import_table=import_table(args.dataframe,args.storename,args.tablename,
+                                           args.partitionpaths or ["'/'"],args.sqlquery)
+            command=execute_import_table_command(eval(contextid),temp_import_table)
+            stop=spark_magic(button,progress,command,None,output,self.shell.user_ns,silent=True)
+            while stop[0]==0:
+                time.sleep(1)
+
+            if stop[1]==1:
+                code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
+                command1=execute_command(eval(contextid),'1',code)
+                stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
+        else:
+            for cell_line in cell.split('\n'):
+                command=execute_import_table_command(eval(contextid),eval(cell_line))
+
+                stop=spark_magic(button,progress,command,None,output,self.shell.user_ns,silent=True)
+                while stop[0]==0:
+                    time.sleep(1)
+
+                if stop[1]==1:
+                    temp_import_table=eval(cell_line)
+                    code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
+                    command1=execute_command(eval(contextid),'1',code)
+                    stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
         
-        if stop[1]==1:
-            temp_import_table=eval(cell)
-            code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
-            command1=execute_command(eval(contextid),'1',code)
-            stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
-        
-        
+    @line_magic
     @cell_magic
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('--contextid', '-c',
-      help='The id of the context to execute the command in'
+    @magic_arguments.argument('--dataframe', '-df',
+      help='The dataframe name to store the table in'
     )
-    def spark_export_table(self, line, cell):
+    @magic_arguments.argument('--storename', '-sn',
+      help='The data store name'
+    )
+    @magic_arguments.argument('--tablename', '-tn',
+      help='The table name'
+    )
+    @magic_arguments.argument('--partitionpath', '-pp',
+      help='The partition path'
+    )
+    def spark_export_table(self, line, cell=None):
         global context_id
-        contextid=''
-        if line!=None and line!='':
-            args = magic_arguments.parse_argstring(self.spark_export_table, line)
-            contextid=args.contextid
-        else:
-            contextid='"%s"'%context_id
-        command=execute_export_table_command(eval(contextid),eval(cell))
-        
+        args = magic_arguments.parse_argstring(self.spark_export_table, line)
+        contextid='"%s"'%context_id
         output = widgets.Output()
         button = widgets.Button(description="Cancel")
         progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
-        display(widgets.VBox([output,widgets.HBox([widgets.Label("CommandId: %s"%command['CommandId']),progress,button])]))
-        
-        spark_magic(button,progress,command,None,output,self.shell.user_ns)
+        display(widgets.VBox([output,widgets.HBox([widgets.Label("Command: Export tables"),progress,button])]))
+        if args.dataframe!=None:
+            temp_export_table=export_table(args.dataframe,args.storename,args.tablename,
+                                           args.partitionpath or "'/'")
+            command=execute_export_table_command(eval(contextid),temp_export_table)
+            spark_magic(button,progress,command,None,output,self.shell.user_ns)
+        else:
+            for cell_line in cell.split('\n'):
+                command=execute_export_table_command(eval(contextid),eval(cell_line))
+                spark_magic(button,progress,command,None,output,self.shell.user_ns)
         
     @line_magic
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('--contextid', '-c',
-      help='The id of the context to execute the command in'
-    )
     @magic_arguments.argument('--dataframe', '-df',
       help='DataFrame to be printed'
     )
@@ -699,14 +710,10 @@ class SparkMagics(Magics):
     )
     def spark_pandas(self, line):
         global context_id
-        contextid=''
+        contextid='"%s"'%context_id
         dataframe=''
         args = magic_arguments.parse_argstring(self.spark_pandas, line)
         out=args.out
-        if args.contextid!=None:
-            contextid=args.contextid
-        else:
-            contextid='"%s"'%context_id
         if args.dataframe!=None:
             dataframe=args.dataframe
         else:
