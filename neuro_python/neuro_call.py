@@ -7,6 +7,70 @@ import requests
 import urllib3
 import neuro_python
 
+def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True):
+    """
+    The neuro_call function provides a way of making authorised calls to the Neuroverse api
+    """
+    port="443"
+    token = os.environ['JUPYTER_TOKEN']
+    if 'prd' in os.environ['NV_DOMAIN']:
+        #this will need to be updated when the certificate expires
+        domain = 'https://15ded47f-ef38-4ee3-b989-685820ca3d36.cloudapp.net'
+    elif 'tst' in os.environ['NV_DOMAIN']:
+        domain = 'https://neuroqa.d3s.com.au'
+    elif 'sit' in os.environ['NV_DOMAIN']:
+        domain = 'https://neurosit.d3s.com.au'
+    elif 'dev' in os.environ['NV_DOMAIN']:
+        domain = 'https://neurodev.d3s.com.au'
+    else:
+        domain = 'http://localhost'
+
+    url = domain + ":8080/NeuroApi/" + port + "/" + service + ".Api/api/"
+    url += service + "/" + method
+    if domain == "http://localhost":
+        url = domain + ":8082/NeuroApi/" + port + "/" + service
+        url += ".Api/api/" + service + "/" + method
+    msg_data = json.dumps(requestbody, default=lambda o: o.__dict__)
+    msg_data_length = len(msg_data)
+    headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
+    urllib3.disable_warnings()
+    if neuro_python.debug_val:
+        print("Request")
+        print(url)
+        print(str(headers))
+        print(msg_data)
+    try:
+        response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                 timeout=timeout)
+    except Exception as err:
+        if retry:
+            response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                 timeout=timeout)
+        else:
+            raise err
+    if neuro_python.debug_val:
+        print("Response")
+        print(response.status_code)
+    if 300>=response.status_code<200:
+        if retry and 600>response.status_code>500:
+            response = requests.post(url, headers=headers, data=msg_data, verify=False,
+                                     timeout=timeout)
+        try:
+            response_obj = response.json()
+        except:
+            response_obj = None
+        if 300>=response.status_code<200:
+            raise Exception('Neuroverse error: Http code ' + str(response.status_code) +'Message: ' + str(response_obj))
+    try:
+        if response_obj["ErrorCode"] is not 0:
+            errMsg=""
+            if response_obj["Error"] is not None:
+                errMsg=response_obj["Error"]
+            raise Exception("Neuroverse Error(%s): " % str(response_obj["ErrorCode"]) + errMsg)
+    except:
+        pass
+    return response_obj
+    
 def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     """
     The neuro_call function provides a way of making authorised calls to the Neuroverse api
