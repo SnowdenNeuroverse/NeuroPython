@@ -11,7 +11,7 @@ def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True):
     """
     The neuro_call function provides a way of making authorised calls to the Neuroverse api
     """
-    port="443"
+    port="80"
     token = os.environ['JUPYTER_TOKEN']
     if 'prd' in os.environ['NV_DOMAIN']:
         #this will need to be updated when the certificate expires
@@ -51,16 +51,18 @@ def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True):
     if neuro_python.debug_val:
         print("Response")
         print(response.status_code)
-    if 300>=response.status_code<200:
+    try:
+        response_obj = response.json()
+    except:
+        response_obj = None
+    if neuro_python.debug_val:
+        print(str(response_obj))
+    if 300<=response.status_code or response.status_code<200:
         if retry and 600>response.status_code>500:
             response = requests.post(url, headers=headers, data=msg_data, verify=False,
                                      timeout=timeout)
-        try:
-            response_obj = response.json()
-        except:
-            response_obj = None
-        if 300>=response.status_code<200:
-            raise Exception('Neuroverse error: Http code ' + str(response.status_code) +'Message: ' + str(response_obj))
+        if 300<=response.status_code or response.status_code<200:
+            raise Exception('Neuroverse error: Http code ' + str(response.status_code) +' Message: ' + str(response_obj))
     try:
         if response_obj["ErrorCode"] is not 0:
             errMsg=""

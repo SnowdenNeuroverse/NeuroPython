@@ -27,7 +27,7 @@ def list_event_monitor_feeds():
     """
     requestbody={}
     response = neuro_call_v2("Event", "ListEventMonitorFeeds", requestbody)
-    return {"Id":response['EventMonitorFeedId'],"Name":response['EventMonitorFeedName'],"FilterColumns":response['FilterColumns']}
+    return [{"Id":r['EventMonitorFeedId'],"Name":r['EventMonitorFeedName'],"FilterColumns":r['FilterColumns']} for r in response]
 
 def create_event_definition(feed_id:str,name:str,severity:int,sql_filter:str=None,notification_definition_id:str=None,description:str=''):
     """
@@ -49,7 +49,7 @@ def delete_event_definition(feed_id:str,event_id:str):
     """
     Delete an event definition.
     """
-    requestbody={"EventDefinitionId":event_id}
+    requestbody={"EventMonitorFeedId":feed_id,"EventDefinitionId":event_id}
     response = neuro_call_v2("Event", "DeleteEventDefinition", requestbody)
     return 'Successful'
 
@@ -59,12 +59,12 @@ def list_event_definitions(feed_id:str):
     """
     requestbody={"EventMonitorFeedId":feed_id}
     response = neuro_call_v2("Event", "ListEventDefinitions", requestbody)
-    return {
-        "Id":response['EventDefinitionId'],
-        "Name":response['EventDefinitionName'],
-        "Description":response['EventDefinitionDescription'],
-        "SqlFilter":response['SqlFilterQuery'],
-        "NotificationDefinitionId":response['NotificationDefinitionId'],
-        "Severity":response['EventDefinitionSeverity'],
-        "FeedId":response['EventMonitorFeedId']
-    }
+    return [{
+        "Id":r['EventDefinitionId'],
+        "Name":r['EventDefinitionName'],
+        "Description":r['EventDefinitionDescription'],
+        "SqlFilter":r['SqlFilterQuery'],
+        "NotificationDefinitionId":r['NotificationDefinitionId'],
+        "Severity":r['EventDefinitionSeverity'],
+        "FeedId":r['EventMonitorFeedId']
+    } for r in response]
