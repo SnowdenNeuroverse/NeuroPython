@@ -5,6 +5,9 @@ import uuid
 
 from neuro_python.neuro_call import neuro_call_v2
 
+def get_event_feed_store_name():
+    return 'NeuroverseEvents'
+
 def create_event_monitor_feed(name:str,filter_columns:"list[str]"):
     """
     Specify an event monitor feed.
