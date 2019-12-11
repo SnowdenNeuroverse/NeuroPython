@@ -73,7 +73,7 @@ def column_definition(name: str, column_data_type: str, column_type: str = "Valu
             "ForeignKeyTableName" : foreign_key_table_name}
 
 def table_definition(columns: "List[table_column]", schema_type: str,
-                     allow_data_changes: bool = False, partition_path: str = "", file_type=None):
+                     allow_data_changes: bool = False, partition_path: str = "", file_type='delta'):
     """
     Object to create a Neuroverse data store table
     """
