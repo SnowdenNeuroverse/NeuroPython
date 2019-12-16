@@ -96,6 +96,8 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
             response_obj = response.json()
             errCode = response_obj["ErrorCode"]
         else:
+            print('Response Text')
+            print(response.text)
             raise err
     if errCode is not 0:
         errMsg=""
