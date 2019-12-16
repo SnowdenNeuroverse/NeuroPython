@@ -50,6 +50,8 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     if neuro_python.debug_val:
         print("Response")
         print(response.status_code)
+        print('Response Text')
+        print(response.text)
     if response.status_code != 200:
         if retry:
             response = requests.post(url, headers=headers, data=msg_data, verify=False,
@@ -96,8 +98,6 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
             response_obj = response.json()
             errCode = response_obj["ErrorCode"]
         else:
-            print('Response Text')
-            print(response.text)
             raise err
     if errCode is not 0:
         errMsg=""
