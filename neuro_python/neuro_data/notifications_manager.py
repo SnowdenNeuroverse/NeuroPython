@@ -29,7 +29,8 @@ def list_notification_definitions():
         "Id":r['NotificationDefinitionId'],
         "Name":r['Name'],
         "DeliveryDescriptors":r['DeliveryDescriptors'],
-        "Description":r['Description']
+        "Description":r['Description'],
+        "NotificationBatchingPeriodInSeconds":r['NotificationBatchingPeriodInSeconds']
         } for r in response]
 
 def delete_notification_definition(notification_id:str):
