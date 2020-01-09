@@ -32,7 +32,7 @@ def list_event_monitor_feeds():
     response = neuro_call_v2("Event", "ListEventMonitorFeeds", requestbody)
     return [{"Id":r['EventMonitorFeedId'],"Name":r['EventMonitorFeedName'],"FilterColumns":r['FilterColumns']} for r in response]
 
-def create_event_definition(feed_id:str,name:str,severity:int,sql_filter:str=None,notification_definition_id:str=None,description:str=''):
+def create_event_definition(feed_id:str,name:str,severity:int,sql_filter:str=None,notification_definition_id:str=None,description:str='',notification_batching_filter_column:str=None):
     """
     Specify an event monitor feed.
     """
@@ -43,7 +43,8 @@ def create_event_definition(feed_id:str,name:str,severity:int,sql_filter:str=Non
         "EventDefinitionDescription":description,
         "EventDefinitionSeverity":severity,
         "SqlFilterQuery":sql_filter,
-        "NotificationDefinitionId":notification_definition_id
+        "NotificationDefinitionId":notification_definition_id,
+        "NotificationBatchingFilterColumn":notification_batching_filter_column
     }
     response = neuro_call_v2("Event", "CreateEventDefinition", requestbody)
     return {"Id":response['EventDefinitionId']}
@@ -68,6 +69,7 @@ def list_event_definitions(feed_id:str):
         "Description":r['EventDefinitionDescription'],
         "SqlFilter":r['SqlFilterQuery'],
         "NotificationDefinitionId":r['NotificationDefinitionId'],
+        "NotificationBatchingFilterColumn":r['NotificationBatchingFilterColumn'],
         "Severity":r['EventDefinitionSeverity'],
         "FeedId":r['EventMonitorFeedId']
     } for r in response]
