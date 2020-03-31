@@ -10,11 +10,11 @@ def delivery_descriptor(target_address:str,delivery_method:int=1):
     """
     return {"TargetAddress":target_address,"DeliveryMethodType":delivery_method}
 
-def create_notification_definition(name:str,delivery_descriptors:"list[delivery_descriptor]",description:str=None):
+def create_notification_definition(name:str,delivery_descriptors:"list[delivery_descriptor]",description:str=None,notification_batching_period_in_seconds:int=None):
     """
     Specify a notification definition.
     """
-    requestbody={"Name":name,"DeliveryDescriptors":delivery_descriptors,"Description":description}
+    requestbody={"Name":name,"DeliveryDescriptors":delivery_descriptors,"Description":description,"NotificationBatchingPeriodInSeconds":notification_batching_period_in_seconds}
     response = neuro_call_v2("Notification", "CreateNotificationDefinition", requestbody)
     return {"Id":response['NotificationDefinitionId']}
 
