@@ -19,7 +19,7 @@ def create_event_hub_namespace(name:str):
     
 def list_event_hub_namespaces():
     request={}
-    neuro_call("80", "endpointmanagement", "GetNameSpace", request)
+    return neuro_call("80", "endpointmanagement", "GetNameSpace", request)['EventHubNamespaces']
     
 def delete_event_hub_namespace(name:str):
     request={"NameSpaceName":name}
@@ -36,7 +36,7 @@ def create_event_hub(namespace_name:str,event_hub_name:str):
 
 def list_event_hubs():
     request = {}
-    neuro_call('80','endpointmanagement','GetEndpoints',request)
+    return neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo']
     
 def delete_event_hub(namespace_name:str,event_hub_name:str):
     endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
