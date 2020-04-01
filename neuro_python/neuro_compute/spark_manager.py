@@ -595,15 +595,15 @@ class SparkMagics(Magics):
             time.sleep(1)
         if stop[1]==1:
             if args.out!=None or args.dataframe==None:
-                command=execute_command(eval(contextid),'1','str(%s.schema)'%dataframe)
+                command=execute_command(eval(contextid),'1','str(%s.columns)'%dataframe)
                 schema_out='A'+str(uuid.uuid4())
                 stop=spark_magic(button,progress,command,schema_out,output,self.shell.user_ns,silent=True)
                 while stop[0]==0:
                     time.sleep(1)
                 if stop[1]==1:
                     columns=[]
-                    for col in self.shell.user_ns[schema_out].split('StructField(')[1:]:
-                        columns.append(col.split(',')[0])
+                    for col in self.shell.user_ns[schema_out].split('[')[-1].strip(']"').replace("'","").split(','):
+                        columns.append(col)
                     command2=execute_command(eval(contextid),'1','display(%s)'%dataframe)
                     data_out='A'+str(uuid.uuid4())
                     stop=spark_magic(button,progress,command2,data_out,output,self.shell.user_ns,silent=True)
@@ -718,7 +718,7 @@ class SparkMagics(Magics):
             dataframe=args.dataframe
         else:
             raise Exception('dataframe parameter must be provided')
-        command=execute_command(eval(contextid),'1','str(%s.schema)'%dataframe)
+        command=execute_command(eval(contextid),'1','str(%s.columns)'%dataframe)
         output = widgets.Output()
         button = widgets.Button(description="Cancel")
         progress = widgets.FloatProgress(value=0.0, min=0.0, max=1.0)
@@ -732,8 +732,8 @@ class SparkMagics(Magics):
         
         if stop[1]==1:
             columns=[]
-            for col in self.shell.user_ns[schema_out].split('StructField(')[1:]:
-                columns.append(col.split(',')[0])
+            for col in self.shell.user_ns[schema_out].split('[')[-1].strip(']"').replace("'","").split(','):
+                columns.append(col)
 
             command2=execute_command(eval(contextid),'1','display(%s)'%dataframe)
             data_out='A'+str(uuid.uuid4())
