@@ -610,10 +610,11 @@ class SparkMagics(Magics):
                     while stop[0]==0:
                         time.sleep(1)
                     if stop[1]==1:
+                        col_len=len(self.shell.user_ns[data_out][0])
                         if args.out is None:
-                            output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns).to_html()))
+                            output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns[0:col_len]).to_html()))
                         else:
-                            self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns)
+                            self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns[0:col_len])
     @line_magic
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -742,10 +743,11 @@ class SparkMagics(Magics):
                 time.sleep(1)
         
             if stop[1]==1:
+                col_len=len(self.shell.user_ns[data_out][0])
                 if args.out is None:
-                    output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns).to_html()))
+                    output.append_display_data(HTML(pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns[0:col_len]).to_html()))
                 else:
-                    self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns)
+                    self.shell.user_ns[args.out] = pd.DataFrame.from_records(self.shell.user_ns[data_out],columns=columns[0:col_len])
         
 ip = get_ipython()
 ip.register_magics(SparkMagics)
