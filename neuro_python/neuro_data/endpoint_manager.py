@@ -36,7 +36,7 @@ def create_event_hub(namespace_name:str,event_hub_name:str):
 
 def list_event_hubs(namespace_name:str):
     request = {}
-    return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==2 and hub['NameSpaceName']==namespace_name]
+    return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==2 and hub['EventHubNamespace']==namespace_name]
     
 def delete_event_hub(namespace_name:str,event_hub_name:str):
     endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
