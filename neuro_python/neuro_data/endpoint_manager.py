@@ -56,7 +56,7 @@ def create_update_event_hub_raw_data_capture(namespace_name:str,event_hub_name:s
                                    partition_id_level:"PartitionByIdLevel"=PartitionIdLevels.NA,
                                    max_file_in_minutes:int=None,
                                    max_file_in_MB:int=None):
-    endpoint = next(obj for obj in list_event_hubs(namespace_name)["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name and obj['EndpointTypeId']==2)
+    endpoint = next(obj for obj in list_event_hubs(namespace_name) if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name and obj['EndpointTypeId']==2)
     datastore = neuro_call('80','datastoremanager','getdatastores',{"StoreName":datalake_name})['DataStores'][0]
     request = {'EndPointId': endpoint['EndPointId'],
     'DataStoreId':datastore['DataStoreId'],
@@ -67,7 +67,7 @@ def create_update_event_hub_raw_data_capture(namespace_name:str,event_hub_name:s
     neuro_call('80','endpointmanagement','PutRawData',request)
     
 def delete_event_hub_raw_data_capture(namespace_name:str,event_hub_name:str):
-    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name and obj['EndpointTypeId']==2) 
+    endpoint = next(obj for obj in list_event_hubs(namespace_name) if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name and obj['EndpointTypeId']==2) 
     #Require interactive
     check = input("Are you sure you want to delete data capture on %s:%s (y/n)"%(namespace_name,event_hub_name))
     if check=='y':
