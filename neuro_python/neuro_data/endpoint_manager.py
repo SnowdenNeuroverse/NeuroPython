@@ -22,8 +22,12 @@ def list_event_hub_namespaces():
     return neuro_call("80", "endpointmanagement", "GetNameSpace", request)['EventHubNamespaces']
     
 def delete_event_hub_namespace(name:str):
-    request={"NameSpaceName":name}
-    neuro_call("80", "endpointmanagement", "GetNameSpace", request)
+    #Require interactive
+    check = input("Are you sure you want to delete %s (y/n)"%name)
+    if check=='y':
+        request={"NameSpaceName":name}
+        neuro_call("80", "endpointmanagement", "GetNameSpace", request)
+        return "%s has been deleted"%name
 
 def create_event_hub(namespace_name:str,event_hub_name:str):
     request = {'EndpointName':event_hub_name,
@@ -40,8 +44,12 @@ def list_event_hubs(namespace_name:str):
     
 def delete_event_hub(namespace_name:str,event_hub_name:str):
     endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
-    request = {'EndPointId': endpoint['EndPointId']}
-    neuro_call('80','endpointmanagement','DeleteEndpoint',request)
+    #Require interactive
+    check = input("Are you sure you want to delete %s:%s (y/n)"%(namespace_name,event_hub_name))
+    if check=='y':
+        request = {'EndPointId': endpoint['EndPointId']}
+        neuro_call('80','endpointmanagement','DeleteEndpoint',request)
+        return "%s:%s has been deleted"%(namespace_name,event_hub_name)
 
 def create_update_event_hub_raw_data_capture(namespace_name:str,event_hub_name:str,datalake_name:str,
                                    datetime_partition_level:"DateTimeLevels"=DateTimeLevels.NA,
@@ -60,8 +68,12 @@ def create_update_event_hub_raw_data_capture(namespace_name:str,event_hub_name:s
     
 def delete_event_hub_raw_data_capture(namespace_name:str,event_hub_name:str):
     endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name and obj['EndpointTypeId']==2) 
-    request = {'EndPointId': endpoint['EndPointId']}
-    neuro_call('80','endpointmanagement','DeleteRawData',request)
+    #Require interactive
+    check = input("Are you sure you want to delete data capture on %s:%s (y/n)"%(namespace_name,event_hub_name))
+    if check=='y':
+        request = {'EndPointId': endpoint['EndPointId']}
+        neuro_call('80','endpointmanagement','DeleteRawData',request)
+        return "Data capture on %s:%s has been deleted"%(namespace_name,event_hub_name)
 
 def create_iot_hub(iot_hub_name:str):
     request = {'EndpointName':iot_hub_name,
@@ -76,10 +88,14 @@ def list_iot_hubs():
     return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==1]
     
 def delete_iot_hub(iot_hub_name:str):
-    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
-    request = {'EndPointId': endpoint['EndPointId']}
-    neuro_call('80','endpointmanagement','DeleteEndpoint',request)
-    
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1)
+    #Require interactive
+    check = input("Are you sure you want to delete %s (y/n)"%iot_hub_name)
+    if check=='y':
+        request = {'EndPointId': endpoint['EndPointId']}
+        neuro_call('80','endpointmanagement','DeleteEndpoint',request)
+        return "%s has been deleted"%iot_hub_name
+
 def create_iot_hub_device(iot_hub_name:str,device_name:str):
     endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
     request = {'EndpointId':endpoint['EndPointId'],
@@ -92,10 +108,14 @@ def list_iot_hub_devices(iot_hub_name:str):
     neuro_call('80','endpointmanagement','GetRegisterDevices',request)["DeviceInfo"]
     
 def delete_iot_hub_devce(iot_hub_name:str,device_name:str):
-    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
-    request = {'EndpointId':endpoint['EndPointId'],
-    'DeviceId':device_name}
-    neuro_call('80','endpointmanagement','DeregisterDevice',request)
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1)
+    #Require interactive
+    check = input("Are you sure you want to delete %s:%s (y/n)"%(iot_hub_name,device_name))
+    if check=='y':
+        request = {'EndpointId':endpoint['EndPointId'],'DeviceId':device_name}
+        neuro_call('80','endpointmanagement','DeregisterDevice',request)
+        return "%s:%s has been deleted"%(iot_hub_name,device_name)
+   
     
 def create_update_iot_hub_raw_data_capture(iot_hub_name:str,datalake_name:str,
                                    datetime_partition_level:"DateTimeLevels"=DateTimeLevels.NA,
@@ -113,6 +133,11 @@ def create_update_iot_hub_raw_data_capture(iot_hub_name:str,datalake_name:str,
     neuro_call('80','endpointmanagement','PutRawData',request)
     
 def delete_iot_hub_raw_data_capture(iot_hub_name:str):
-    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
-    request = {'EndPointId': endpoint['EndPointId']}
-    neuro_call('80','endpointmanagement','DeleteRawData',request)
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1)
+    #Require interactive
+    check = input("Are you sure you want to delete data capture on %s (y/n)"%(iot_hub_name))
+    if check=='y':
+        request = {'EndPointId': endpoint['EndPointId']}
+        neuro_call('80','endpointmanagement','DeleteRawData',request)
+        return "Data capture on %s has been deleted"%(iot_hub_name)
+    
