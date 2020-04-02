@@ -34,21 +34,21 @@ def create_event_hub(namespace_name:str,event_hub_name:str):
     'DataIngestionTypeId':0}
     neuro_call('80','endpointmanagement','CreateEndpoint',request)
 
-def list_event_hubs():
+def list_event_hubs(namespace_name:str):
     request = {}
-    return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==2]
+    return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==2 and hub['NameSpaceName']==namespace_name]
     
 def delete_event_hub(namespace_name:str,event_hub_name:str):
     endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
     request = {'EndPointId': endpoint['EndPointId']}
     neuro_call('80','endpointmanagement','DeleteEndpoint',request)
 
-def create_update_raw_data_capture(namespace_name:str,event_hub_name:str,datalake_name:str,
+def create_update_event_hub_raw_data_capture(namespace_name:str,event_hub_name:str,datalake_name:str,
                                    datetime_partition_level:"DateTimeLevels"=DateTimeLevels.NA,
                                    partition_id_level:"PartitionByIdLevel"=PartitionIdLevels.NA,
                                    max_file_in_minutes:int=None,
                                    max_file_in_MB:int=None):
-    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name)
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name and obj['EndpointTypeId']==2)
     datastore = nc('80','datastoremanager','getdatastores',{"StoreName":datalake_name})['DataStores'][0]
     request = {'EndPointId': endpoint['EndPointId'],
     'DataStoreId':datastore['DataStoreId'],
@@ -58,7 +58,61 @@ def create_update_raw_data_capture(namespace_name:str,event_hub_name:str,datalak
     'FileSizeMBMax': max_file_in_MB}
     nc('80','endpointmanagement','PutRawData',request)
     
-def delete_raw_data_capture(namespace_name:str,event_hub_name:str):
-    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
+def delete_event_hub_raw_data_capture(namespace_name:str,event_hub_name:str):
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name and obj['EndpointTypeId']==2) 
+    request = {'EndPointId': endpoint['EndPointId']}
+    neuro_call('80','endpointmanagement','DeleteRawData',request)
+
+def create_iot_hub(iot_hub_name:str):
+    request = {'EndpointName':iot_hub_name,
+    'EndPointType':1,
+    'Description':'',
+    'ScaleTierTypeId':0,
+    'DataIngestionTypeId':0}
+    neuro_call('80','endpointmanagement','CreateEndpoint',request)
+
+def list_iot_hubs():
+    request = {}
+    return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==1]
+    
+def delete_iot_hub(iot_hub_name:str):
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
+    request = {'EndPointId': endpoint['EndPointId']}
+    neuro_call('80','endpointmanagement','DeleteEndpoint',request)
+    
+def create_iot_hub_device(iot_hub_name:str,device_name:str):
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
+    request = {'EndpointId':endpoint['EndPointId'],
+    'DeviceId':device_name}
+    neuro_call('80','endpointmanagement','RegisterDevice',request)
+
+def list_iot_hub_devices(iot_hub_name:str):
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
+    request = {'EndpointId':endpoint['EndPointId']}
+    neuro_call('80','endpointmanagement','GetRegisterDevices',request)
+    
+def delete_iot_hub_devce(iot_hub_name:str,device_name:str):
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
+    request = {'EndpointId':endpoint['EndPointId'],
+    'DeviceId':device_name}
+    neuro_call('80','endpointmanagement','DeregisterDevice',request)
+    
+def create_update_iot_hub_raw_data_capture(iot_hub_name:str,datalake_name:str,
+                                   datetime_partition_level:"DateTimeLevels"=DateTimeLevels.NA,
+                                   partition_id_level:"PartitionByIdLevel"=PartitionIdLevels.NA,
+                                   max_file_in_minutes:int=None,
+                                   max_file_in_MB:int=None):
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1)
+    datastore = nc('80','datastoremanager','getdatastores',{"StoreName":datalake_name})['DataStores'][0]
+    request = {'EndPointId': endpoint['EndPointId'],
+    'DataStoreId':datastore['DataStoreId'],
+    'PartitionByDateTimeLevel':datetime_partition_level.value,
+    'PartitionByIdLevel':partition_id_level.value,
+    'FileTimeMinutesMax': max_file_in_minutes,
+    'FileSizeMBMax': max_file_in_MB}
+    nc('80','endpointmanagement','PutRawData',request)
+    
+def delete_iot_hub_raw_data_capture(iot_hub_name:str):
+    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
     request = {'EndPointId': endpoint['EndPointId']}
     neuro_call('80','endpointmanagement','DeleteRawData',request)
