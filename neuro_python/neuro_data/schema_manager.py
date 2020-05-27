@@ -9,8 +9,8 @@ from neuro_python.neuro_call import neuro_call
 
 DATA_TYPE_MAP = {"Int" : 11, "Decimal" : 9, "String" : 14, "BigInt" : 1, "Boolean" : 3,
                  "DateTime" : 6, "UniqueIdentifier" : 22, "Int32" : 11, "Int64" : 1, "Double" : 10,
-                 "Guid" : 22}
-DATA_TYPE_MAP_REV = {3 : "Boolean", 11: "Int32", 1 : "Int64", 9 : "Decimal", 10 : "Double", 6 : "DateTime", 22 : "Guid", 14 : "String"}
+                 "Guid" : 22, "VarBinary" : 23}
+DATA_TYPE_MAP_REV = {3 : "Boolean", 11: "Int32", 1 : "Int64", 9 : "Decimal", 10 : "Double", 6 : "DateTime", 22 : "Guid", 14 : "String", 23 : "VarBinary"}
 COL_TYPE_MAP = {"Key" : 1, "Value" : 4, "TimeStampKey" : 3, "ForeignKey" : 2}
 SCHEMA_TYPE_MAP = {"DataIngestion" : 1, "TimeSeries" : 2, "Processed" : 3}
 SCHEMA_TYPE_MAP_REV = {1:"DataIngestion", 2:"TimeSeries", 3:"Processed"}
