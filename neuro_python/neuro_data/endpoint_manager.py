@@ -26,7 +26,7 @@ def delete_event_hub_namespace(name:str):
     check = input("Are you sure you want to delete %s (y/n)"%name)
     if check=='y':
         request={"NameSpaceName":name}
-        neuro_call("80", "endpointmanagement", "GetNameSpace", request)
+        neuro_call("80", "endpointmanagement", "DeleteNamespace", request)
         return "%s has been deleted"%name
 
 def create_event_hub(namespace_name:str,event_hub_name:str):
@@ -43,7 +43,7 @@ def list_event_hubs(namespace_name:str):
     return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==2 and hub['EventHubNamespace']==namespace_name]
     
 def delete_event_hub(namespace_name:str,event_hub_name:str):
-    endpoint = next(obj for obj in list_event_hubs()["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
+    endpoint = next(obj for obj in list_event_hubs(namespace_name)["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
     #Require interactive
     check = input("Are you sure you want to delete %s:%s (y/n)"%(namespace_name,event_hub_name))
     if check=='y':
