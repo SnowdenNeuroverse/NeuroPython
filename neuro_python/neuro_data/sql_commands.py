@@ -147,7 +147,7 @@ def sql_to_df(store_name: str, sql_query: "sql_query",use_pyodbc=True):
         connstrbits=neuro_call('80','datastoremanager','GetDataStores',{'StoreName':store_name})['DataStores'][0]['ConnectionString'].split(';')
         server=connstrbits[0].split(':')[1].split(',')[0]
         database=connstrbits[1].split('=')[1]
-        username=database
+        username=connstrbits[2].split('=')[1]
         password=connstrbits[3].split('=')[1]
         driver= '{ODBC Driver 13 for SQL Server}'
         with pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as cnxn:
@@ -174,7 +174,7 @@ def df_to_sql(store_name: str,table_name: str, data: "pandas.DataFrame"):
     server=connstrbits[0].split(':')[1].split(',')[0]
     database=connstrbits[1].split('=')[1]
     domain=server.split('.')[0]
-    username=database
+    username=connstrbits[2].split('=')[1]
     password=connstrbits[3].split('=')[1]
     driver= 'ODBC Driver 13 for SQL Server'
     engine = db.create_engine('mssql+pyodbc://%s@%s:%s@%s:1433/%s?driver=%s'%(username,domain,password,server,database,driver), echo=False)
@@ -187,7 +187,7 @@ def run_sql(store_name: str, sql_query: str, return_df=False):
     connstrbits=neuro_call('80','datastoremanager','GetDataStores',{'StoreName':store_name})['DataStores'][0]['ConnectionString'].split(';')
     server=connstrbits[0].split(':')[1].split(',')[0]
     database=connstrbits[1].split('=')[1]
-    username=database
+    username=connstrbits[2].split('=')[1]
     password=connstrbits[3].split('=')[1]
     driver= '{ODBC Driver 13 for SQL Server}'
     with pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as cnxn:
