@@ -32,7 +32,7 @@ def delay_session_shutdown():
         return KeepSessionRunningResponse
 
     
-def clone_git_notebook_repository_branch(repo_name,branch,remote_url,user_name,password,email):
+def clone_repo(repo_name,branch,remote_url,user_name,password,email):
     """
     Clone a branch from a remote git repository. The repo and branch need to be already created. 
     This code expects all notebooks in the remote repo to start with a ".". This function will automatically remove the "." prefix.
