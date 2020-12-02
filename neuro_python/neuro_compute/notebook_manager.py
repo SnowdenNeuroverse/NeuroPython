@@ -77,11 +77,16 @@ def clone_repo(repo_name,branch,remote_url,user_name,password,email):
     command += 'git add .gitignore; '
     command += 'git commit -m "init"; '
     command += 'push origin; '
-    command += "rename 's/^.//' .*.ipynb; "
-    command += "tmp=$PWD; for folder in $(find -type d -print); do cd \"$tmp/${folder:2}\"; rename 's/^.//' .*.ipynb; done; cd $tmp"
 
     output = subprocess.Popen(command, shell=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output.wait()
     err=output.communicate()[1].decode('utf-8')
     if 'fatal:' in err:
         raise Exception(err)
+        
+    notebook_files=list(pathlib.Path(repo_name+'#'+branch).glob("**/*.ipynb"))
+    for file in notebook_files:
+        file=str(file)
+        newfile_split = file.split('/')
+        newFile=newfile_split[-1][1:len(newfile_split[-1])]
+        shutil.copyfile(file,'/'.join(newfile_split[0:-1])+'/'+newFile)
