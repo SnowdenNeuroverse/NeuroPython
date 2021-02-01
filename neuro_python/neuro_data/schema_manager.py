@@ -58,6 +58,12 @@ def column_definition(name: str, column_data_type: str, column_type: str = "Valu
     if "String" in column_data_type:
         data_type = DATA_TYPE_MAP["String"]
         data_type_size = int(column_data_type.split('(')[1].strip(')'))
+    elif "VarBinary" in column_data_type:
+        data_type = DATA_TYPE_MAP["VarBinary"]
+        try:
+            data_type_size = int(column_data_type.split('(')[1].strip(')'))
+        except:
+            data_type_size = 0
     elif "Decimal" in column_data_type:
         data_type = DATA_TYPE_MAP["Decimal"]
         data_type_precision,data_type_scale = list(map(int, column_data_type.
@@ -130,6 +136,11 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
             column_data_type = str(list(DATA_TYPE_MAP.keys())[list(DATA_TYPE_MAP.values()).index(col["ColumnDataType"])])
             if "String" in column_data_type:
                 column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
+            elif "VarBinary" in column_data_type:
+                if col["ColumnDataTypeSize"]==None:
+                    column_data_type += "(" + str(0) + ")"
+                else:
+                    column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
             elif "Decimal" in column_data_type:
                 column_data_type += "(" + str(col["ColumnDataTypePrecision"]) + "," + str(col["ColumnDataTypeScale"]) +")"
             is_required = col["IsRequired"]
