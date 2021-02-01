@@ -63,7 +63,7 @@ def column_definition(name: str, column_data_type: str, column_type: str = "Valu
         try:
             data_type_size = int(column_data_type.split('(')[1].strip(')'))
         except:
-            data_type_size = -1
+            data_type_size = 0
     elif "Decimal" in column_data_type:
         data_type = DATA_TYPE_MAP["Decimal"]
         data_type_precision,data_type_scale = list(map(int, column_data_type.
