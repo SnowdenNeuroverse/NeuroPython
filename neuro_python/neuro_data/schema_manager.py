@@ -137,7 +137,10 @@ def create_table(store_name: str, table_name: str, table_def: "table_definition"
             if "String" in column_data_type:
                 column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
             elif "VarBinary" in column_data_type:
-                column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
+                if col["ColumnDataTypeSize"]==None:
+                    column_data_type += "(" + str(0) + ")"
+                else:
+                    column_data_type += "(" + str(col["ColumnDataTypeSize"]) + ")"
             elif "Decimal" in column_data_type:
                 column_data_type += "(" + str(col["ColumnDataTypePrecision"]) + "," + str(col["ColumnDataTypeScale"]) +")"
             is_required = col["IsRequired"]
