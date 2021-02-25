@@ -43,7 +43,7 @@ def list_event_hubs(namespace_name:str):
     return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==2 and hub['EventHubNamespace']==namespace_name]
     
 def delete_event_hub(namespace_name:str,event_hub_name:str):
-    endpoint = next(obj for obj in list_event_hubs(namespace_name)["EndPointInfo"] if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
+    endpoint = next(obj for obj in list_event_hubs(namespace_name) if obj["EventHubNamespace"]==namespace_name and obj["Name"]==event_hub_name) 
     #Require interactive
     check = input("Are you sure you want to delete %s:%s (y/n)"%(namespace_name,event_hub_name))
     if check=='y':
@@ -88,7 +88,7 @@ def list_iot_hubs():
     return [hub for hub in neuro_call('80','endpointmanagement','GetEndpoints',request)['EndPointInfo'] if hub['EndpointTypeId']==1]
     
 def delete_iot_hub(iot_hub_name:str):
-    endpoint = next(obj for obj in list_iot_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1)
+    endpoint = next(obj for obj in list_iot_hubs() if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1)
     #Require interactive
     check = input("Are you sure you want to delete %s (y/n)"%iot_hub_name)
     if check=='y':
