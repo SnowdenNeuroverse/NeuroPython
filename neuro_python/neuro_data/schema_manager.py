@@ -270,3 +270,56 @@ def delete_processed_table(store_name: str, table_name: str, force=True):
         print('Table is deleted')
     else:
         print('Table is not deleted')
+
+def create_view(store_name: str, view_name: str, sql_query: str):
+    """
+    Create a SQL view
+    """
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
+    if len(data_stores) == 0:
+        raise Exception("Data store doesn't exist")
+    
+    neuro_call("80", "datapopulation", "CreateDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name, "Query": sql_query})
+    
+def update_view(store_name: str, view_name: str, sql_query: str):
+    """
+    Update a SQL view
+    """
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
+    if len(data_stores) == 0:
+        raise Exception("Data store doesn't exist")
+    
+    neuro_call("80", "datapopulation", "UpdateDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name, "Query": sql_query})
+    
+def list_views(store_name: str):
+    """
+    List SQL views
+    """
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
+    if len(data_stores) == 0:
+        raise Exception("Data store doesn't exist")
+    
+    response = neuro_call("80", "datapopulation", "ListDataPopulationViews", {"DataStoreId": data_stores[0]["DataStoreId"]})
+    return response["Names"]
+  
+def get_view(store_name: str, view_name: str):
+    """
+    Get a SQL view
+    """
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
+    if len(data_stores) == 0:
+        raise Exception("Data store doesn't exist")
+    
+    response = neuro_call("80", "datapopulation", "GetDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name})
+    return {"Name": response["Name"], "Query": response["Query"]}
+  
+def delete_view(store_name: str, view_name: str):
+    """
+    Delete a SQL view
+    """
+    data_stores = neuro_call("80", "datastoremanager", "GetDataStores", {"StoreName" : store_name})["DataStores"]
+    if len(data_stores) == 0:
+        raise Exception("Data store doesn't exist")
+    
+    neuro_call("80", "datapopulation", "DeleteDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name})
+    
