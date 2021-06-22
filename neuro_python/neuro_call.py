@@ -7,7 +7,7 @@ import requests
 import urllib3
 import neuro_python
 
-def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True):
+def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True, controller=None):
     """
     The neuro_call function provides a way of making authorised calls to the Neuroverse api
     """
@@ -25,11 +25,18 @@ def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True):
     else:
         domain = 'http://localhost'
 
-    url = domain + ":8080/NeuroApi/" + port + "/" + service + ".Api/api/"
-    url += service + "/" + method
-    if domain == "http://localhost":
-        url = domain + ":8082/NeuroApi/" + port + "/" + service
-        url += ".Api/api/" + service + "/" + method
+    if controller==None:
+        url = domain + ":8080/NeuroApi/" + port + "/" + service + ".Api/api/"
+        url += controller + "/" + method
+        if domain == "http://localhost":
+            url = domain + ":8082/NeuroApi/" + port + "/" + service
+            url += ".Api/api/" + controller + "/" + method
+    else:
+        url = domain + ":8080/NeuroApi/" + port + "/" + service + ".Api/api/"
+        url += service + "/" + method
+        if domain == "http://localhost":
+            url = domain + ":8082/NeuroApi/" + port + "/" + service
+            url += ".Api/api/" + service + "/" + method
     msg_data = json.dumps(requestbody, default=lambda o: o.__dict__)
     msg_data_length = len(msg_data)
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
