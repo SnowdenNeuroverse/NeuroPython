@@ -80,7 +80,7 @@ def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True, contro
         pass
     return response_obj
     
-def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
+def neuro_call(port, service, method, requestbody, timeout=1200, retry=True, controller=None):
     """
     The neuro_call function provides a way of making authorised calls to the Neuroverse api
     """
@@ -97,11 +97,18 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True):
     else:
         domain = 'http://localhost'
 
-    url = domain + ":8080/NeuroApi/" + port + "/" + service + "/api/"
-    url += service.lower().replace("service", "") + "/" + method
-    if domain == "http://localhost":
-        url = domain + ":8082/NeuroApi/" + port + "/" + service
-        url += "/api/" + service.lower().replace("service", "") + "/" + method
+    if controller==None:
+        url = domain + ":8080/NeuroApi/" + port + "/" + service + "/api/"
+        url += service.lower().replace("service", "") + "/" + method
+        if domain == "http://localhost":
+            url = domain + ":8082/NeuroApi/" + port + "/" + service
+            url += "/api/" + service.lower().replace("service", "") + "/" + method
+    else:
+        url = domain + ":8080/NeuroApi/" + port + "/" + service + "/api/"
+        url += controller + "/" + method
+        if domain == "http://localhost":
+            url = domain + ":8082/NeuroApi/" + port + "/" + service
+            url += "/api/" + controller + "/" + method
     msg_data = json.dumps(requestbody, default=lambda o: o.__dict__)
     msg_data_length = len(msg_data)
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
