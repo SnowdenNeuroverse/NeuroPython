@@ -279,7 +279,7 @@ def create_view(store_name: str, view_name: str, sql_query: str):
     if len(data_stores) == 0:
         raise Exception("Data store doesn't exist")
     
-    neuro_call("80", "datapopulation", "CreateDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name, "Query": sql_query})
+    neuro_call("80", "datapopulation", "CreateDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name, "Query": sql_query},controller="DataPopulationView")
     
 def update_view(store_name: str, view_name: str, sql_query: str):
     """
@@ -289,7 +289,7 @@ def update_view(store_name: str, view_name: str, sql_query: str):
     if len(data_stores) == 0:
         raise Exception("Data store doesn't exist")
     
-    neuro_call("80", "datapopulation", "UpdateDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name, "Query": sql_query})
+    neuro_call("80", "datapopulation", "UpdateDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name, "Query": sql_query},controller="DataPopulationView")
     
 def list_views(store_name: str):
     """
@@ -299,7 +299,7 @@ def list_views(store_name: str):
     if len(data_stores) == 0:
         raise Exception("Data store doesn't exist")
     
-    response = neuro_call("80", "datapopulation", "ListDataPopulationViews", {"DataStoreId": data_stores[0]["DataStoreId"]})
+    response = neuro_call("80", "datapopulation", "ListDataPopulationViews", {"DataStoreId": data_stores[0]["DataStoreId"]},controller="DataPopulationView")
     return response["Names"]
   
 def get_view(store_name: str, view_name: str):
@@ -310,7 +310,7 @@ def get_view(store_name: str, view_name: str):
     if len(data_stores) == 0:
         raise Exception("Data store doesn't exist")
     
-    response = neuro_call("80", "datapopulation", "GetDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name})
+    response = neuro_call("80", "datapopulation", "GetDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name},controller="DataPopulationView")
     return {"Name": response["Name"], "Query": response["Query"]}
   
 def delete_view(store_name: str, view_name: str):
@@ -321,5 +321,5 @@ def delete_view(store_name: str, view_name: str):
     if len(data_stores) == 0:
         raise Exception("Data store doesn't exist")
     
-    neuro_call("80", "datapopulation", "DeleteDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name})
+    neuro_call("80", "datapopulation", "DeleteDataPopulationView", {"DataStoreId": data_stores[0]["DataStoreId"], "Name": view_name},controller="DataPopulationView")
     
