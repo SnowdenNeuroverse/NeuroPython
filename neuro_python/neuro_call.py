@@ -15,7 +15,7 @@ def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True, contro
     token = os.environ['JUPYTER_TOKEN']
     if 'prd' in os.environ['NV_DOMAIN']:
         #this will need to be updated when the certificate expires
-        domain = 'https://15ded47f-ef38-4ee3-b989-685820ca3d36.cloudapp.net'
+        domain = 'https://24ef3f75-9b77-4240-b756-d682b7d12a83.cloudapp.net'
     elif 'tst' in os.environ['NV_DOMAIN']:
         domain = 'https://neuroqa.d3s.com.au'
     elif 'sit' in os.environ['NV_DOMAIN']:
@@ -87,7 +87,7 @@ def neuro_call(port, service, method, requestbody, timeout=1200, retry=True, con
     token = os.environ['JUPYTER_TOKEN']
     if 'prd' in os.environ['NV_DOMAIN']:
         #this will need to be updated when the certificate expires
-        domain = 'https://15ded47f-ef38-4ee3-b989-685820ca3d36.cloudapp.net'
+        domain = 'https://24ef3f75-9b77-4240-b756-d682b7d12a83.cloudapp.net'
     elif 'tst' in os.environ['NV_DOMAIN']:
         domain = 'https://neuroqa.d3s.com.au'
     elif 'sit' in os.environ['NV_DOMAIN']:
