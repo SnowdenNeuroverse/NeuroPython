@@ -42,6 +42,9 @@ def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True, contro
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
     urllib3.disable_warnings()
     if neuro_python.debug_val:
+        print(service)
+        print(controller)
+        print(method)
         print("Request")
         print(url)
         print(str(headers))
