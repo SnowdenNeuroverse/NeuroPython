@@ -105,7 +105,7 @@ def create_iot_hub_device(iot_hub_name:str,device_name:str):
 def list_iot_hub_devices(iot_hub_name:str):
     endpoint = next(obj for obj in list_iot_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1) 
     request = {'EndpointId':endpoint['EndPointId']}
-    neuro_call_v2(service='endpointmanager','GetRegisterDevices',requestbody=request, controller="endpointmanagement")["DeviceInfo"]
+    neuro_call_v2(service='endpointmanager',method='GetRegisterDevices',requestbody=request, controller="endpointmanagement")["DeviceInfo"]
     
 def delete_iot_hub_devce(iot_hub_name:str,device_name:str):
     endpoint = next(obj for obj in list_iot_hubs()["EndPointInfo"] if obj["Name"]==iot_hub_name and obj['EndpointTypeId']==1)
