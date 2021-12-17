@@ -681,7 +681,7 @@ class SparkMagics(Magics):
                     stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
         
     def checkForLimits(dataframe_name,store_name):
-        if store_name='NeuroverseEvents':
+        if store_name=='NeuroverseEvents':
             findLimitCommand='''if 'LocalLimit' in %s._jdf.queryExecution().toString():
                 print(True)
             else:
