@@ -556,17 +556,17 @@ def spark_magic(button,progress,command,out,output,user_ns,silent=False):
 
 def checkForLimits(dataframe_name,store_name):
     if store_name=='NeuroverseEvents':
-        findLimitCommand='''if 'LocalLimit' in %s._jdf.queryExecution().toString():
-            print(True)
-        else:
-            print(False)'''%dataframe_name
+        findLimitCommand='''
+if 'LocalLimit' in %s._jdf.queryExecution().toString():
+    print(True)
+else:
+    print(False)'''%dataframe_name
         command=execute_command(context_id,'findLimit',findLimitCommand)
-        while inspect_command(command['CommandId'])['Status']!='Finished' and stop[0]==0:
+        while inspect_command(command['CommandId'])['Status']!='Finished':
             time.sleep(1)
         result=inspect_command(command['CommandId'])
         if result['Result']['Data']=='True':
-            with output:
-                print("Your limit on DataFrame:%s will not be applied. Consider cancelling and using a where clause instead."%dataframe_name)  
+            print("Your limit on DataFrame:%s will not be applied. Consider cancelling and using a where clause instead."%dataframe_name)  
 
 @magics_class
 class SparkMagics(Magics):
