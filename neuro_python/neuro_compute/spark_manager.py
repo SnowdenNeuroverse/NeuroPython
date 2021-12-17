@@ -554,6 +554,20 @@ def spark_magic(button,progress,command,out,output,user_ns,silent=False):
     thread1.start()
     return stop
 
+def checkForLimits(dataframe_name,store_name):
+    if store_name=='NeuroverseEvents':
+        findLimitCommand='''if 'LocalLimit' in %s._jdf.queryExecution().toString():
+            print(True)
+        else:
+            print(False)'''%dataframe_name
+        command=execute_command(context_id,'findLimit',findLimitCommand)
+        while inspect_command(command['CommandId'])['Status']!='Finished' and stop[0]==0:
+            time.sleep(1)
+        result=inspect_command(command['CommandId'])
+        if result['Result']['Data']=='True':
+            with output:
+                print("Your limit on DataFrame:%s will not be applied. Consider cancelling and using a where clause instead."%dataframe_name)  
+
 @magics_class
 class SparkMagics(Magics):
     @cell_magic
@@ -678,21 +692,7 @@ class SparkMagics(Magics):
                     temp_import_table=eval(cell_line)
                     code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
                     command1=execute_command(eval(contextid),'1',code)
-                    stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
-        
-    def checkForLimits(dataframe_name,store_name):
-        if store_name=='NeuroverseEvents':
-            findLimitCommand='''if 'LocalLimit' in %s._jdf.queryExecution().toString():
-                print(True)
-            else:
-                print(False)'''%dataframe_name
-            command=execute_command(context_id,'findLimit',findLimitCommand)
-            while inspect_command(command['CommandId'])['Status']!='Finished' and stop[0]==0:
-                time.sleep(1)
-            result=inspect_command(command['CommandId'])
-            if result['Result']['Data']=='True':
-                with output:
-                    print("Your limit on DataFrame:%s will not be applied. Consider cancelling and using a where clause instead."%dataframe_name)    
+                    stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)  
     
     @line_magic
     @cell_magic
