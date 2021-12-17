@@ -680,6 +680,20 @@ class SparkMagics(Magics):
                     command1=execute_command(eval(contextid),'1',code)
                     stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
         
+    def checkForLimits(dataframe_name,store_name):
+        if store_name='NeuroverseEvents':
+            findLimitCommand='''if 'LocalLimit' in %s._jdf.queryExecution().toString():
+                print(True)
+            else:
+                print(False)'''%dataframe_name
+            command=execute_command(context_id,'findLimit',findLimitCommand)
+            while inspect_command(command['CommandId'])['Status']!='Finished' and stop[0]==0:
+                time.sleep(1)
+            result=inspect_command(command['CommandId'])
+            if result['Result']['Data']=='True':
+                with output:
+                    print("Your limit on DataFrame:%s will not be applied. Consider cancelling and using a where clause instead."%dataframe_name)    
+    
     @line_magic
     @cell_magic
     @magic_arguments.magic_arguments()
@@ -706,11 +720,14 @@ class SparkMagics(Magics):
         if args.dataframe!=None:
             temp_export_table=export_table(args.dataframe,args.storename,args.tablename,
                                            args.partitionpath or "'/'")
+            checkForLimits(temp_export_table["SparkDataFrameName"],temp_export_table["DataStoreName"])
             command=execute_export_table_command(eval(contextid),temp_export_table)
             spark_magic(button,progress,command,None,output,self.shell.user_ns)
         else:
             for cell_line in cell.split('\n'):
-                command=execute_export_table_command(eval(contextid),eval(cell_line))
+                temp_export_table=eval(cell_line)
+                checkForLimits(temp_export_table["SparkDataFrameName"],temp_export_table["DataStoreName"])
+                command=execute_export_table_command(eval(contextid),temp_export_table)
                 spark_magic(button,progress,command,None,output,self.shell.user_ns)
         
     @line_magic
