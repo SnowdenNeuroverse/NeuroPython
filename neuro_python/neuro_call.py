@@ -27,13 +27,13 @@ def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True, contro
 
     if controller==None:
         url = domain + ":8080/NeuroApi/" + port + "/" + service + ".Api/api/"
-        url += controller + "/" + method
+        url += service + "/" + method
         if domain == "http://localhost":
             url = domain + ":8082/NeuroApi/" + port + "/" + service
             url += ".Api/api/" + controller + "/" + method
     else:
         url = domain + ":8080/NeuroApi/" + port + "/" + service + ".Api/api/"
-        url += service + "/" + method
+        url += controller + "/" + method
         if domain == "http://localhost":
             url = domain + ":8082/NeuroApi/" + port + "/" + service
             url += ".Api/api/" + service + "/" + method
@@ -42,6 +42,9 @@ def neuro_call_v2(service, method, requestbody, timeout=1200, retry=True, contro
     headers = {'Content-Length' : str(msg_data_length), 'Token' : token}
     urllib3.disable_warnings()
     if neuro_python.debug_val:
+        print(service)
+        print(controller)
+        print(method)
         print("Request")
         print(url)
         print(str(headers))
