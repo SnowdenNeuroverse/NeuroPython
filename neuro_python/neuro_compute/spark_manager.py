@@ -682,17 +682,18 @@ class SparkMagics(Magics):
                 stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
         else:
             for cell_line in cell.split('\n'):
-                command=execute_import_table_command(eval(contextid),eval(cell_line))
+                if cell_line != "":
+                    command=execute_import_table_command(eval(contextid),eval(cell_line))
 
-                stop=spark_magic(button,progress,command,None,output,self.shell.user_ns,silent=True)
-                while stop[0]==0:
-                    time.sleep(1)
+                    stop=spark_magic(button,progress,command,None,output,self.shell.user_ns,silent=True)
+                    while stop[0]==0:
+                        time.sleep(1)
 
-                if stop[1]==1:
-                    temp_import_table=eval(cell_line)
-                    code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
-                    command1=execute_command(eval(contextid),'1',code)
-                    stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)  
+                    if stop[1]==1:
+                        temp_import_table=eval(cell_line)
+                        code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
+                        command1=execute_command(eval(contextid),'1',code)
+                        stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)  
     
     @line_magic
     @cell_magic
@@ -725,10 +726,11 @@ class SparkMagics(Magics):
             spark_magic(button,progress,command,None,output,self.shell.user_ns)
         else:
             for cell_line in cell.split('\n'):
-                temp_export_table=eval(cell_line)
-                checkForLimits(temp_export_table["SparkDataFrameName"],temp_export_table["DataStoreName"])
-                command=execute_export_table_command(eval(contextid),temp_export_table)
-                spark_magic(button,progress,command,None,output,self.shell.user_ns)
+                if cell_line != "":
+                    temp_export_table=eval(cell_line)
+                    checkForLimits(temp_export_table["SparkDataFrameName"],temp_export_table["DataStoreName"])
+                    command=execute_export_table_command(eval(contextid),temp_export_table)
+                    spark_magic(button,progress,command,None,output,self.shell.user_ns)
         
     @line_magic
     @magic_arguments.magic_arguments()
