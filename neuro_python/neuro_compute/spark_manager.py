@@ -605,7 +605,7 @@ class SparkMagics(Magics):
         out=args.out
         if args.dataframe!=None:
             dataframe=args.dataframe
-            code = ('%s=spark.sql("%s")\n%s.registerTempTable("%s")'%(dataframe,cell.replace('\n',' '),dataframe,dataframe))
+            code = ('%s=spark.sql("%s")\n%s.createOrReplaceTempView("%s")'%(dataframe,cell.replace('\n',' '),dataframe,dataframe))
         else:
             dataframe="df%s"%(str(uuid.uuid4()).replace('-','_'))
             code = ('%s=spark.sql("%s")'%(dataframe,cell.replace('\n',' ')))
@@ -677,7 +677,7 @@ class SparkMagics(Magics):
                 time.sleep(1)
 
             if stop[1]==1:
-                code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
+                code="%s.createOrReplaceTempView('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
                 command1=execute_command(eval(contextid),'1',code)
                 stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)
         else:
@@ -691,7 +691,7 @@ class SparkMagics(Magics):
 
                     if stop[1]==1:
                         temp_import_table=eval(cell_line)
-                        code="%s.registerTempTable('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
+                        code="%s.createOrReplaceTempView('%s')"%(temp_import_table['SparkDataFrameName'],temp_import_table['SparkDataFrameName'])
                         command1=execute_command(eval(contextid),'1',code)
                         stop=spark_magic(button,progress,command1,None,output,self.shell.user_ns)  
     
