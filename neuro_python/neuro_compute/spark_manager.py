@@ -8,7 +8,7 @@ import uuid
 import os
 import datetime
 import pandas as pd
-pd.set_option('display.max_rows', 100000)
+pd.set_option('display.max_rows', 500000)
 import time
 import threading
 from IPython.display import display,HTML,TextDisplayObject
