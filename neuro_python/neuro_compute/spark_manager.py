@@ -13,9 +13,8 @@ import time
 import threading
 from IPython.display import display,HTML,TextDisplayObject
 import ipywidgets as widgets
-import uuid
-from typing import Union
-import time
+from typing import Union, Tuple
+from functools import singledispatch
 
 from IPython.core import magic_arguments
 from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
@@ -147,6 +146,111 @@ def list_runs(job_id: str, schedule_id: str = None, submitted_by: str = None, ma
                                      }
                                    )
     return list_runs_response["RunSummaries"]
+
+def _run_job_wrapper(job_id: str, run_name: str) -> Tuple[bool, str]:
+    run_metadata = run_job(job_id=job_id, run_name=run_name)
+    time.sleep(1)
+    if run_metadata['ErrorCode']==0:
+        while 1:
+            runs_info = list_runs(job_id)
+            func_run_info = next((run_json for run_json in runs_info
+                                if run_json["RunId"]==run_metadata['RunId']),
+                                None)
+            if func_run_info is None:
+                return False, "Unable to find RunId in run history."
+            run_status = func_run_info['Status'].lower()
+            if run_status=='running':
+                time.sleep(3)
+            elif run_status=='failed':
+                return False, func_run_info['Message']
+            elif run_status=='finished':
+                return True, 'Success'
+            else:
+                raise ValueError(f"Run status {func_run_info['Status']} not in expected subset: Running, Failed, Finished.")
+    else:
+        return False, run_metadata['Error']
+
+@singledispatch
+def run_manual_job(job_name, cluster_id: str = None, workspace_id: str = None, run_name:str = None) -> Tuple[bool, str]:
+    """
+    Run either one job, or, if a list is provided, a sequence of jobs. This job_name will be a look_up string or substring
+    for a job on Neuroverse, this job(s) is found in the job directory and then a run is generated with the run_name provided
+    (if run_name==None then a random run_name is generated).
+    This function is recursive and will accept nested lists, so long the final non-list elements are strings.
+    NOTE: This function should be used with caution as it will trigger live jobs, only use look-up job names which you are confident will
+    hit your intended target.
+    """
+    raise ValueError(f"job_name must be str or list, got {type(job_name)}")
+
+@run_manual_job.register(str)
+def _(job_name:str, cluster_id=None, workspace_id=None, run_name=None):
+    available_jobs = list_jobs(workspace_id=workspace_id, cluster_id=cluster_id)
+    valid_jobs = []
+    extact_matchs = []
+    if run_name is None:
+        run_name_tmp = f"{job_name}_manual_{datetime.datetime.utcnow()}"
+    else:
+        run_name_tmp = run_name
+    
+    # search all jobs on cluster for those matching or including given job name
+    for job_i in available_jobs:
+        if job_name==job_i["JobName"]:
+            extact_matchs.append(job_i)
+            valid_jobs.append(job_i)
+        elif job_name in job_i["JobName"]:
+            valid_jobs.append(job_i)
+        else:
+            pass
+    
+    # check the valid_jobs and begin job if 1 otherwise return warning
+    if len(valid_jobs)==0:
+        error_msg = f'No jobs found on cluster containing {job_name}, confirm cluster and job list.'
+        print(error_msg)
+        return False, error_msg
+    elif len(valid_jobs)>1:
+        if len(extact_matchs)==1:
+            print(f'Multiple jobs found with given {job_name} substring, however one job had exact \
+                  job name and so will run this job'
+                 )
+            return _run_job_wrapper(job_id=extact_matchs[0]['JobId'], run_name=run_name_tmp)        
+        elif len(extact_matchs)>1:
+            error_msg = f'Multiple jobs found with exact job name provided, {job_name}, please review jobs \
+                  on cluster and remove duplicate jobs before using this function'
+            print(error_msg)
+            return False, error_msg
+        else:
+            error_msg = f'The {job_name} arg had multiple options, please review jobs \
+                  and either remove duplicate jobs or use an exact name for job_name arg.'
+            print(error_msg)
+            return False, error_msg            
+    elif len(valid_jobs)==1:
+        print(f"Commencing job: {valid_jobs[0]['JobName']}")
+        return _run_job_wrapper(job_id=valid_jobs[0]['JobId'], run_name=run_name_tmp)
+    else:
+        raise IndexError(f'valid_jobs has an accountable length: {len(valid_jobs)}')
+
+@run_manual_job.register(list)
+def _(job_name:list, cluster_id=None, workspace_id=None, run_name=None):
+    run_results = []
+    for run_request in job_name:
+        result_tuple = run_manual_job(run_request,cluster_id,workspace_id,run_name)
+        run_results.append(result_tuple)
+        
+        # Evaluate the result using the True / False inital element to decide if job succeeded, breaking out of
+        # for-loop sequence if a job fails. Also checks if result_status is a iterable, meaning the function is returning
+        # a sequence in a multi-sequence call, in which case the sequence results are printed to the screen. 
+        result_status = next(iter(result_tuple or []), False)
+        if isinstance(result_status, (list, tuple)):
+            print_statement = [(job_i, status) for job_i, status in zip(job_name, run_results)]
+            print("Proceeding to next sequence after the following results:")
+            for job_i, status in print_statement:
+                print(f"{job_i}: {status}")
+        elif not isinstance(result_status, bool) or result_status==False:
+            print('One of jobs listed returned Failed/Error or the returning output was corrupted')
+            return run_results
+        else:
+            pass
+    return run_results
 
 def run_schedule(job_id: str, schedule_name: str, utc_cron_expression: str, 
             override_script_parameters: "List[script_parameter]" = None,
