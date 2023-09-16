@@ -13,9 +13,7 @@ import time
 import threading
 from IPython.display import display,HTML,TextDisplayObject
 import ipywidgets as widgets
-import uuid
 from typing import Union
-import time
 
 from IPython.core import magic_arguments
 from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
