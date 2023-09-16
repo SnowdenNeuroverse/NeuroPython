@@ -345,9 +345,10 @@ def get_cluster_id(find: Union[str, int], workspace_id: str = None) -> str:
     """
     Get a workspace ID either by index or WorkspaceName
     """
+    cluster_list = list_clusters(workspace_id)
     if isinstance(find, str):
         clusterID = next((clst_json["ClusterId"]
-                          for clst_json in list_clusters()
+                          for clst_json in cluster_list
                           if find in clst_json["Request"]),
                           None
                         )
@@ -355,11 +356,11 @@ def get_cluster_id(find: Union[str, int], workspace_id: str = None) -> str:
             print("No Cluster with given name")
         return clusterID
     elif isinstance(find, int):
-        if find<0 or find>len(list_clusters(workspace_id))-1:
-            raise ValueError(f'Index (beginning at 0) entered is out of range of available clusters: {len(list_clusters(workspace_id))-1}'
+        if find<0 or find>len(cluster_list)-1:
+            raise ValueError(f'Index (beginning at 0) entered is out of range of available clusters: {len(cluster_list)-1}'
                             )
         else:
-            return list_clusters(workspace_id)[find]["ClusterId"]
+            return cluster_list[find]["ClusterId"]
     else:
         raise TypeError(f'The look up arg `find` must be a string or integer, got {type(find)}')
 
@@ -408,20 +409,23 @@ def kickoff_cluster(cluster_id: str = None, workspace_id: str = None, force_rest
         print('Cluster running, forcing restart now. This will take 3 - 10 minutes.')
         restart_cluster(cluster_id, workspace_id)
         time.sleep(5)
-        while get_cluster_status(cluster_id, workspace_id)!='RUNNING':
+        while status!='RUNNING':
             time.sleep(10)
+            status = get_cluster_status(cluster_id, workspace_id)
         print("Finished restart, Cluster is ready")
     elif status in ['PENDING', 'RESIZING']:
         print(f'Cluster is in a {status.lower()} state, will be ready soon.')
-        while get_cluster_status(cluster_id, workspace_id)!='RUNNING':
+        while status!='RUNNING':
             time.sleep(10)
+            status = get_cluster_status(cluster_id, workspace_id)
         print("Cluster is ready")
     elif status=='TERMINATED':
         print(f'Spinning up cluster now. This will take 3 - 10 minutes.')
         start_cluster(cluster_id, workspace_id)
         time.sleep(5)
-        while get_cluster_status(cluster_id, workspace_id)!='RUNNING':
+        while status!='RUNNING':
             time.sleep(10)
+            status = get_cluster_status(cluster_id, workspace_id)
         print("Cluster is ready")
     else:
         raise ProcessLookupError(f'Cluster was in unexpected state ({status}) please reach out to support')
@@ -465,13 +469,12 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
     del create_context_response['ErrorCode']
     return create_context_response
 
-
-def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find: Union[str, int] = 0, context_name: str = None, force_restart: bool = False ):
+def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find: Union[str, int] = 0, context_name: str = None, force_restart: bool = False):
     """
     Allows user to make one call to spin up / acces the cluster and create a context with one function.
     """
     workspaceID = get_workspace_id(workspace_id_find)
-    clusterID = get_cluster_id(cluster_id_find, workspace_id=workspaceID)
+    clusterID = get_cluster_id(find=cluster_id_find, workspace_id=workspaceID)
     kickoff_cluster(cluster_id=clusterID, workspace_id=workspaceID, force_restart=force_restart)
 
     # defining a spark session context
