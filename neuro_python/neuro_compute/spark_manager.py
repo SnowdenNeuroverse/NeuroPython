@@ -16,6 +16,7 @@ import ipywidgets as widgets
 from typing import Union, Tuple
 from functools import singledispatch
 
+
 from IPython.core import magic_arguments
 from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
 
