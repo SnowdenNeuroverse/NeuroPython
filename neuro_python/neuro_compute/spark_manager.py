@@ -13,7 +13,7 @@ import time
 import threading
 from IPython.display import display,HTML,TextDisplayObject
 import ipywidgets as widgets
-import uuid
+from typing import Union
 
 from IPython.core import magic_arguments
 from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
@@ -322,6 +322,56 @@ def list_workspaces():
     del list_clusters_response['ErrorCode']
     return list_clusters_response['Workspaces']
 
+def get_workspace_id(find: Union[str, int] = 0) -> str:
+    """
+    Get a workspace ID either by index or WorkspaceName
+    """
+    if isinstance(find, str):
+        workspaceID = next((wrk_json["WorkspaceId"] for wrk_json in list_workspaces()
+                            if wrk_json["WorkspaceName"]==find),
+                            None
+                          )
+        if not workspaceID:
+            print("No Workspace with given name")
+        return workspaceID
+    elif isinstance(find, int):
+        return list_workspaces()[find]["WorkspaceId"]
+    else:
+        raise TypeError(f'The look up arg `find` must be a string or integer, got {type(find)}')
+
+def get_cluster_id(find: Union[str, int], workspace_id: str = None) -> str:
+    """
+    Get a workspace ID either by index or WorkspaceName
+    """
+    cluster_list = list_clusters(workspace_id)
+    if isinstance(find, str):
+        clusterID = next((clst_json["ClusterId"]
+                          for clst_json in cluster_list
+                          if find in clst_json["Request"]),
+                          None
+                        )
+        if not clusterID:
+            print("No Cluster with given name")
+        return clusterID
+    elif isinstance(find, int):
+        if find<0 or find>len(cluster_list)-1:
+            raise ValueError(f'Index (beginning at 0) entered is out of range of available clusters: {len(cluster_list)-1}'
+                            )
+        else:
+            return cluster_list[find]["ClusterId"]
+    else:
+        raise TypeError(f'The look up arg `find` must be a string or integer, got {type(find)}')
+
+def get_cluster_status(cluster_id: str = None, workspace_id: str = None) -> str:
+    """
+    return cluster status from neuro_call
+    """
+    return next((cluster['State']
+                 for cluster in list_clusters(workspace_id=workspace_id)
+                 if cluster['ClusterId']==cluster_id),
+                 'NO CLUSTER FOUND'
+                )
+
 def restart_cluster(cluster_id: str = None, workspace_id: str = None):
     """
     Restart a cluster
@@ -344,7 +394,40 @@ def start_cluster(cluster_id: str = None, workspace_id: str = None):
                                          "WorkspaceId" : workspace_id
                                      }
                                    )
-    
+
+def kickoff_cluster(cluster_id: str = None, workspace_id: str = None, force_restart: bool = False):
+    """
+    Allows user to attempt to start cluster safely, not doing so if cluster is running. Will also 
+    alert user when spin up is complete.
+    """
+    status = get_cluster_status(cluster_id, workspace_id)
+    if status=='RUNNING' and not force_restart:
+        print('Cluster is already running.')
+    elif status=='RUNNING' and force_restart:
+        print('Cluster running, forcing restart now. This will take 3 - 10 minutes.')
+        restart_cluster(cluster_id, workspace_id)
+        time.sleep(5)
+        while status!='RUNNING':
+            time.sleep(10)
+            status = get_cluster_status(cluster_id, workspace_id)
+        print("Finished restart, Cluster is ready")
+    elif status in ['PENDING', 'RESIZING']:
+        print(f'Cluster is in a {status.lower()} state, will be ready soon.')
+        while status!='RUNNING':
+            time.sleep(10)
+            status = get_cluster_status(cluster_id, workspace_id)
+        print("Cluster is ready")
+    elif status=='TERMINATED':
+        print(f'Spinning up cluster now. This will take 3 - 10 minutes.')
+        start_cluster(cluster_id, workspace_id)
+        time.sleep(5)
+        while status!='RUNNING':
+            time.sleep(10)
+            status = get_cluster_status(cluster_id, workspace_id)
+        print("Cluster is ready")
+    else:
+        raise ProcessLookupError(f'Cluster was in unexpected state ({status}) please reach out to support')
+
 def delete_cluster(cluster_id: str = None, workspace_id: str = None):
     """
     Delete a cluster
@@ -383,6 +466,24 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
     del create_context_response['Error']
     del create_context_response['ErrorCode']
     return create_context_response
+
+def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find: Union[str, int] = 0, context_name: str = None, force_restart: bool = False):
+    """
+    Allows user to make one call to spin up / acces the cluster and create a context with one function.
+    """
+    workspaceID = get_workspace_id(workspace_id_find)
+    clusterID = get_cluster_id(find=cluster_id_find, workspace_id=workspaceID)
+    kickoff_cluster(cluster_id=clusterID, workspace_id=workspaceID, force_restart=force_restart)
+
+    # defining a spark session context
+    time.sleep(2)
+    if context_name is None:
+        context_name = str(uuid())[:8]+'-context'
+    
+    context_text = create_context(context_name=context_name, cluster_id=clusterID, workspace_id=workspaceID)
+    print("Context generated")
+    return context_text
+
 
 def inspect_context(context_id: str):
     """
