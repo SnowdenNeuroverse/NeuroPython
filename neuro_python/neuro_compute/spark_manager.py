@@ -384,6 +384,24 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
     del create_context_response['ErrorCode']
     return create_context_response
 
+def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find: Union[str, int] = 0, context_name: str = None, force_restart: bool = False):
+    """
+    Allows user to make one call to spin up / acces the cluster and create a context with one function.
+    """
+    workspaceID = get_workspace_id(workspace_id_find)
+    clusterID = get_cluster_id(find=cluster_id_find, workspace_id=workspaceID)
+    kickoff_cluster(cluster_id=clusterID, workspace_id=workspaceID, force_restart=force_restart)
+
+    # defining a spark session context
+    time.sleep(2)
+    if context_name is None:
+        context_name = str(uuid.uuid4())[:8]+'-context'
+    
+    context_text = create_context(context_name=context_name, cluster_id=clusterID, workspace_id=workspaceID)
+    print("Context generated")
+    return context_text
+
+
 def inspect_context(context_id: str):
     """
     Inspect status of an interactive spark context
