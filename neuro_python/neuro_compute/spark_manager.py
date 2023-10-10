@@ -585,7 +585,7 @@ def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find:
     # defining a spark session context
     time.sleep(2)
     if context_name is None:
-        context_name = str(uuid())[:8]+'-context'
+        context_name = str(uuid.uuid4())[:8]+'-context'
     
     context_text = create_context(context_name=context_name, cluster_id=clusterID, workspace_id=workspaceID)
     print("Context generated")
