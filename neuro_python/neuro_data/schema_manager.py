@@ -34,8 +34,8 @@ def index_definition(index_name: str, index_type: str, index_column_names: typin
     """
     columns = []
     for col in index_column_names:
-        columns.append({"ColumnName" : col})
-    return {"IndexName" : index_name, "IndexType" : INDEX_TYPE_MAP[index_type], "IndexColumns" : columns}
+        columns.append({"DestinationTableDefinitionIndexColumnId" : None, "ColumnName" : col})
+    return {"DestinationTableDefinitionIndexId" : None,"IndexName" : index_name, "IndexType" : INDEX_TYPE_MAP[index_type], "IndexColumns" : columns}
 
 
 def column_definition(name: str, column_data_type: str, column_type: str = "Value", is_required: bool = False):
