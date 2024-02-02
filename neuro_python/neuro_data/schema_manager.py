@@ -209,7 +209,7 @@ def add_table_indexes(store_name: str, table_name: str, table_indexes: "List[ind
     Add indexes to a table in a Neuroverse SQL data store
     """
     table_def = get_table_definition(store_name, table_name)
-    table_def["DestinationTableDefinitionIndexes"].append(table_indexes)
+    table_def["DestinationTableDefinitionIndexes"] = table_indexes
     neuro_call("80", "datapopulation", "UpdateDestinationTableDefinition", table_def)
 
 def save_table_definition(file_name: str, table_def: "table_definition"):
