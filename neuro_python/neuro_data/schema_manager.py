@@ -14,7 +14,7 @@ DATA_TYPE_MAP_REV = {3 : "Boolean", 11: "Int32", 1 : "Int64", 9 : "Decimal", 10 
 COL_TYPE_MAP = {"Key" : 1, "Value" : 4, "TimeStampKey" : 3, "ForeignKey" : 2}
 SCHEMA_TYPE_MAP = {"DataIngestion" : 1, "TimeSeries" : 2, "Processed" : 3}
 SCHEMA_TYPE_MAP_REV = {1:"DataIngestion", 2:"TimeSeries", 3:"Processed"}
-INDEX_TYPE_MAP = {"NonClustered" : 1, "Clustered" : 2, "ClusteredColumnStore" : 3, "NonClusteredColumnStore" : 4}
+INDEX_TYPE_MAP = {"NonClustered" : 0, "Clustered" : 1, "ClusteredColumnStore" : 2, "NonClusteredColumnStore" : 3}
 
 def get_column_data_types():
     "Get available data types for columns in Neuroverse tabular data"
