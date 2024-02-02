@@ -14,6 +14,7 @@ DATA_TYPE_MAP_REV = {3 : "Boolean", 11: "Int32", 1 : "Int64", 9 : "Decimal", 10 
 COL_TYPE_MAP = {"Key" : 1, "Value" : 4, "TimeStampKey" : 3, "ForeignKey" : 2}
 SCHEMA_TYPE_MAP = {"DataIngestion" : 1, "TimeSeries" : 2, "Processed" : 3}
 SCHEMA_TYPE_MAP_REV = {1:"DataIngestion", 2:"TimeSeries", 3:"Processed"}
+INDEX_TYPE = {"NonClustered" : 1, "Clustered" : 2, "ClusteredColumnStore" : 3, "NonClusteredColumnStore" : 4}
 
 def get_column_data_types():
     "Get available data types for columns in Neuroverse tabular data"
@@ -27,14 +28,14 @@ def get_schema_types():
     "Get available schema types for Neuroverse tabular data"
     return list(SCHEMA_TYPE_MAP.keys())
 
-def index_definition(index_name: str, index_column_names: typing.List[str]):
+def index_definition(index_name: str, index_type: INDEX_TYPE, index_column_names: typing.List[str]):
     """
     Object to create Sql table indexes in Neuroverse
     """
     columns = []
     for col in index_column_names:
         columns.append({"ColumnName" : col})
-    return {"IndexName" : index_name, "IndexColumns" : columns}
+    return {"IndexName" : index_name, "IndexType" : index_type, "IndexColumns" : columns}
 
 
 def column_definition(name: str, column_data_type: str, column_type: str = "Value", is_required: bool = False):
