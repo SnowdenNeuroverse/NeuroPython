@@ -439,7 +439,7 @@ def get_workspace_id(find: Union[str, int] = 0) -> str:
                             None
                           )
         if not workspaceID:
-            print("No Workspace with given name")
+            print(f"No Workspace with given name: `{find}`")
         return workspaceID
     elif isinstance(find, int):
         return list_workspaces()[find]["WorkspaceId"]
@@ -448,17 +448,17 @@ def get_workspace_id(find: Union[str, int] = 0) -> str:
 
 def get_cluster_id(find: Union[str, int], workspace_id: str = None) -> str:
     """
-    Get a workspace ID either by index or WorkspaceName
+    Get a cluster ID either by index or full name
     """
     cluster_list = list_clusters(workspace_id)
     if isinstance(find, str):
         clusterID = next((clst_json["ClusterId"]
                           for clst_json in cluster_list
-                          if find in clst_json["Request"]),
+                          if f'"cluster_name":"{find}"' in clst_json["Request"]),
                           None
                         )
         if not clusterID:
-            print("No Cluster with given name")
+            print(f"No Cluster with given name: `{find}`")
         return clusterID
     elif isinstance(find, int):
         if find<0 or find>len(cluster_list)-1:
@@ -468,6 +468,7 @@ def get_cluster_id(find: Union[str, int], workspace_id: str = None) -> str:
             return cluster_list[find]["ClusterId"]
     else:
         raise TypeError(f'The look up arg `find` must be a string or integer, got {type(find)}')
+
 
 def get_cluster_status(cluster_id: str = None, workspace_id: str = None) -> str:
     """
