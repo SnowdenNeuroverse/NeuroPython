@@ -577,7 +577,7 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
 
 def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find: Union[str, int] = 0, context_name: str = None, force_restart: bool = False):
     """
-    Allows user to make one call to spin up / acces the cluster and create a context with one function.
+    Allows user to make call to spin up / access the cluster and create a context with one function.
     """
     workspaceID = get_workspace_id(workspace_id_find)
     clusterID = get_cluster_id(find=cluster_id_find, workspace_id=workspaceID)
