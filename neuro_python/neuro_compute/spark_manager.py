@@ -6,6 +6,8 @@ Spark Manager in Neuroverse.
 from neuro_python.neuro_call import neuro_call
 import uuid
 import os
+import re
+import textwrap
 import datetime
 import pandas as pd
 pd.set_option('display.max_rows', None)
@@ -15,7 +17,6 @@ from IPython.display import display,HTML,TextDisplayObject
 import ipywidgets as widgets
 from typing import Union, Tuple
 from functools import singledispatch
-
 
 from IPython.core import magic_arguments
 from IPython.core.magic import line_magic, cell_magic, line_cell_magic, Magics, magics_class
@@ -28,7 +29,47 @@ def script_parameter(name: str, value):
     Cmd line parameter value to be used in the pyspark script. eg sys.argv[1]
     """
     return {"Name":name,"Value":value}
-  
+
+def check_and_break_while(start_time:datetime.datetime, max_time:int=1020, raise_error:bool=True, process:str = "Cluster boot-up") -> bool:
+    """
+    Check if the time taken is greater than the max_time (seconds), if so raise an error or return True.
+    NOTE: Assumes start_time is a datetime.datetime object with timezone.utc.
+    """
+    check_time = (datetime.datetime.now(datetime.timezone.utc)-start_time).seconds
+    if check_time > max_time and raise_error:
+        raise TimeoutError(f'{process} taking longer than expected, please check status.')
+    elif check_time > max_time and not raise_error:
+        return True
+    elif check_time <= max_time and raise_error:
+        return False
+    elif check_time <= max_time and not raise_error:
+        return False
+    else:
+        raise ValueError(f'Unexpected error in check_and_break_while function for {process}, please check inputs.')
+
+@singledispatch
+def match_status(match: Union[list,str], status: str) -> bool:
+    """
+    Check if a status is in a list of possible statuses. This requires that the status is a substring of the match or vice versa.
+    """
+    raise ValueError(f"match_status input `match` must be list or str, got {type(match)}")
+
+@match_status.register(str)
+def _(match: str, status: str) -> bool:
+    if isinstance(status, str):
+        return status.lower() in match.lower() or match.lower() in status.lower()
+    else:
+        raise ValueError(f"match_status input `status` must be str, got {type(status)}")
+
+@match_status.register(list)
+def _(match: list, status: str) -> bool:
+    if isinstance(status, str):
+        if not all(isinstance(i, str) for i in match):
+            raise ValueError(f"match list elements must all be lists, got {match}")
+        return any([status.lower() in match_i.lower() or match_i.lower() in status.lower() for match_i in match])
+    else:
+        raise ValueError(f"match_status input `status` must be str, got {type(status)}")
+
 def import_table(dataframe_name: str, data_store_name: str, table_name: str, partition_paths: "List[str]" = ["'/'"], sql_query: str = None, ignore_non_existing_partition_paths: bool = None):
     """
     Neuroverse datalake data to be used in the pyspark script.
@@ -148,11 +189,129 @@ def list_runs(job_id: str, schedule_id: str = None, submitted_by: str = None, ma
                                    )
     return list_runs_response["RunSummaries"]
 
+def get_job_id(name_substr: str, workspace_id: str = None, cluster_id: str = None) -> str:
+    """
+    Get a job ID either by index in list_jobs() or JobName.
+    """
+    job_list = list_jobs(workspace_id=workspace_id, cluster_id=cluster_id)
+    if isinstance(name_substr, str):
+        job_candidates = [job for job in job_list if name_substr in job['JobName']]
+        if len(job_candidates)==1:
+            jobID = next((job['JobId'] for job in job_candidates if 'JobId' in job.keys()), None)
+            if jobID is None:
+                raise ProcessLookupError(f'Output of list_jobs() did not contain JobId key, please reach out to support.')
+            else:
+                return jobID
+        elif len(job_candidates)>1:
+            job_candidates_multi = [job['JobName'] for job in job_candidates]
+            raise ValueError(
+                f'Multiple jobs found with given substring {name_substr}: {job_candidates_multi}.\
+                    Please call again with more specific substring.'
+                )
+        else:
+            raise ValueError(f'No job found with given {name_substr} substring, please confirm job name.')
+    else:
+        raise TypeError(f'The look up arg `name_substr` must be a string, got {type(name_substr)}')
+
+def list_jobs_by_name(look_up: str,
+                      return_dict: bool = False,
+                      regex: bool = False,
+                      regex_flag: re.RegexFlag = 0,
+                      get_schedules: bool = False,
+                      get_runs: bool = False,
+                      workspace_id: str = None,
+                      cluster_id: str = None,
+                      jobs_max_returned: int = None,
+                      runs_max_returned: int = None,
+                      runs_submitted_by: str = None,
+                     ) -> dict:
+    """
+    Find the jobs submitted to spark manager, by a either regex or substring lookup.
+    If return_dict True, then dict is returned with JobId as key, otherwise results are printed. 
+    Additionally you can request additional information about schedules and/or runs associated with the jobs.
+    NOTE: max_returned applies to both runs and jobs.
+    """
+    # define generic text wrappers and return_dict
+    return_output = {} if return_dict else None
+    preferredWidth = 150
+    subpreferredWidth = 120
+    run_prefix = "    Runs: "
+    run_wrapper = textwrap.TextWrapper(initial_indent=run_prefix, width=subpreferredWidth,
+                               subsequent_indent=' '*len(run_prefix))
+    sch_prefix = "    Schedules: "
+    sch_wrapper = textwrap.TextWrapper(initial_indent=sch_prefix, width=subpreferredWidth,
+                                       subsequent_indent=' '*len(sch_prefix))
+    
+    # API call for jobs and checking dict keys are still valid
+    available_jobs = list_jobs(workspace_id=workspace_id, cluster_id=cluster_id)
+    if any([False if "JobName" in job_i.keys() else True for job_i in available_jobs]):
+        raise KeyError("JobName does not exist in job return dicts. Please raise with Support.")
+    if any([False if "JobId" in job_i.keys() else True for job_i in available_jobs]):
+        raise KeyError("JobId does not exist in job return dicts. Please raise with Support.")
+    
+    # Perform look up, either through regex or naive substring. Truncate list by jobs_max_returned if provided.
+    if regex:
+        selected_jobs = [job_i for job_i in available_jobs if bool(re.search(look_up, job_i["JobName"], flags=regex_flag))]
+    else:
+        selected_jobs = [job_i for job_i in available_jobs if look_up in job_i["JobName"]]
+    if jobs_max_returned:
+        selected_jobs = selected_jobs[:jobs_max_returned]
+    
+    # Go through each job printing details, and schedules/runs if requested.
+    if not return_dict:
+        if len(selected_jobs)==0:
+            print(f"For look_up {look_up}, no jobs found.")  
+        else:
+            print(f"For look_up {look_up}, the following jobs were found:")
+    for job in selected_jobs:
+        job_name = str(job['JobName'])
+        job_id = str(job['JobId'])
+        if return_dict:
+            return_output[job_id] = job
+        else:
+            prefix = job_name + ": "
+            wrapper = textwrap.TextWrapper(initial_indent=prefix, width=preferredWidth,
+                                       subsequent_indent=' '*len(prefix))
+            print(wrapper.fill(str(job)))
+        if get_schedules:
+            try:
+                job_dets = get_job_details(job_id)
+            except:
+                print(f"Unable to find job reference for {job_name}")
+            if "Schedules" not in job_dets.keys():
+                raise KeyError("Schedules key not in get_job_details dicts. Please raise with Support.")
+            schedules = job_dets["Schedules"]
+            if return_dict:
+                return_output[job_id]["Schedules"] = schedules
+            else:
+                sch_message = "\n".join([str(sch) for sch in schedules])
+                print(sch_wrapper.fill(sch_message))
+        if get_runs:
+            try:
+                runs = list_runs(job_id=job_id, submitted_by=runs_submitted_by, max_returned=runs_max_returned)
+            except:
+                print(f"Unable to find job reference for {job_name}")
+            if return_dict:
+                return_output[job_id]["Runs"] = runs
+            else:
+                run_message = "\n".join([str(run) for run in runs]) 
+                print(run_wrapper.fill(run_message))
+    return return_output
+
 def _run_job_wrapper(job_id: str, run_name: str) -> Tuple[bool, str]:
+    """
+    Wrapper for run_job, used to run a job and then check the status of the run.
+    """
+    start_time = datetime.datetime.now(datetime.timezone.utc)
     run_metadata = run_job(job_id=job_id, run_name=run_name)
-    time.sleep(1)
+    print(f"Run {run_name} started on Databricks Backend. Waiting for completion")
+    
     if run_metadata['ErrorCode']==0:
-        while 1:
+        time.sleep(10)
+        time_check = True
+        time_counter = 1
+        while time_check:
+            time.sleep(10)
             runs_info = list_runs(job_id)
             func_run_info = next((run_json for run_json in runs_info
                                 if run_json["RunId"]==run_metadata['RunId']),
@@ -160,11 +319,14 @@ def _run_job_wrapper(job_id: str, run_name: str) -> Tuple[bool, str]:
             if func_run_info is None:
                 return False, "Unable to find RunId in run history."
             run_status = func_run_info['Status'].lower()
-            if run_status=='running':
-                time.sleep(3)
-            elif run_status=='failed':
+            if match_status('running', run_status):
+                if check_and_break_while(start_time, max_time=900*time_counter, raise_error=False, process=f"Run {run_name}"):
+                    time_counter+=1
+                    print(f"Run {run_name} has taken {15*time_counter} minutes and is continuing, if this is unexpected please verify manually.")
+            elif match_status('failed', run_status):
                 return False, func_run_info['Message']
-            elif run_status=='finished':
+            elif match_status('finished', run_status):
+                print(f"Run {run_name} has completed successfully. Took {(datetime.datetime.now(datetime.timezone.utc)-start_time).seconds/60} minutes.")
                 return True, 'Success'
             else:
                 raise ValueError(f"Run status {func_run_info['Status']} not in expected subset: Running, Failed, Finished.")
@@ -189,7 +351,7 @@ def _(job_name:str, cluster_id=None, workspace_id=None, run_name=None):
     valid_jobs = []
     extact_matchs = []
     if run_name is None:
-        run_name_tmp = f"{job_name}_manual_{datetime.datetime.utcnow()}"
+        run_name_tmp = f"{job_name}_manual_{datetime.datetime.now(datetime.timezone.utc)}"
     else:
         run_name_tmp = run_name
     
@@ -228,7 +390,7 @@ def _(job_name:str, cluster_id=None, workspace_id=None, run_name=None):
         print(f"Commencing job: {valid_jobs[0]['JobName']}")
         return _run_job_wrapper(job_id=valid_jobs[0]['JobId'], run_name=run_name_tmp)
     else:
-        raise IndexError(f'valid_jobs has an accountable length: {len(valid_jobs)}')
+        raise IndexError(f'valid_jobs has an unexpected length: {len(valid_jobs)}')
 
 @run_manual_job.register(list)
 def _(job_name:list, cluster_id=None, workspace_id=None, run_name=None):
@@ -439,7 +601,7 @@ def get_workspace_id(find: Union[str, int] = 0) -> str:
                             None
                           )
         if not workspaceID:
-            print("No Workspace with given name")
+            print(f"No Workspace with given name: `{find}`")
         return workspaceID
     elif isinstance(find, int):
         return list_workspaces()[find]["WorkspaceId"]
@@ -448,17 +610,17 @@ def get_workspace_id(find: Union[str, int] = 0) -> str:
 
 def get_cluster_id(find: Union[str, int], workspace_id: str = None) -> str:
     """
-    Get a workspace ID either by index or WorkspaceName
+    Get a cluster ID either by index or full name
     """
     cluster_list = list_clusters(workspace_id)
     if isinstance(find, str):
         clusterID = next((clst_json["ClusterId"]
                           for clst_json in cluster_list
-                          if find in clst_json["Request"]),
+                          if f'"cluster_name":"{find}"' in clst_json["Request"]),
                           None
                         )
         if not clusterID:
-            print("No Cluster with given name")
+            print(f"No Cluster with given name: `{find}`")
         return clusterID
     elif isinstance(find, int):
         if find<0 or find>len(cluster_list)-1:
@@ -468,6 +630,7 @@ def get_cluster_id(find: Union[str, int], workspace_id: str = None) -> str:
             return cluster_list[find]["ClusterId"]
     else:
         raise TypeError(f'The look up arg `find` must be a string or integer, got {type(find)}')
+
 
 def get_cluster_status(cluster_id: str = None, workspace_id: str = None) -> str:
     """
@@ -507,30 +670,53 @@ def kickoff_cluster(cluster_id: str = None, workspace_id: str = None, force_rest
     Allows user to attempt to start cluster safely, not doing so if cluster is running. Will also 
     alert user when spin up is complete.
     """
+    start_time = datetime.datetime.now(datetime.timezone.utc)
     status = get_cluster_status(cluster_id, workspace_id)
-    if status=='RUNNING' and not force_restart:
+    if match_status("running", status) and not force_restart:
         print('Cluster is already running.')
-    elif status=='RUNNING' and force_restart:
+    elif match_status("running", status) and force_restart:
         print('Cluster running, forcing restart now. This will take 3 - 10 minutes.')
         restart_cluster(cluster_id, workspace_id)
-        time.sleep(5)
-        while status!='RUNNING':
+        time.sleep(10)
+        status = get_cluster_status(cluster_id, workspace_id)
+        while not match_status("running", status):
             time.sleep(10)
             status = get_cluster_status(cluster_id, workspace_id)
+            check_and_break_while(start_time)
         print("Finished restart, Cluster is ready")
-    elif status in ['PENDING', 'RESIZING']:
+    elif match_status(['pending', 'resizing'], status):
         print(f'Cluster is in a {status.lower()} state, will be ready soon.')
-        while status!='RUNNING':
+        while not match_status("running", status):
             time.sleep(10)
             status = get_cluster_status(cluster_id, workspace_id)
+            check_and_break_while(start_time)
         print("Cluster is ready")
-    elif status=='TERMINATED':
+    elif match_status("terminate", status):
         print(f'Spinning up cluster now. This will take 3 - 10 minutes.')
         start_cluster(cluster_id, workspace_id)
         time.sleep(5)
-        while status!='RUNNING':
+        while not match_status("running", status):
             time.sleep(10)
             status = get_cluster_status(cluster_id, workspace_id)
+            check_and_break_while(start_time)
+        print("Cluster is ready")
+    elif match_status("terminating", status):
+        print(f'Cluster is currently terminating. Function will wait until this process is complete and then begin again.')
+        # waiting for cluster to terminate
+        time.sleep(5)
+        while not match_status("terminate", status):
+            time.sleep(10)
+            status = get_cluster_status(cluster_id, workspace_id)
+            check_and_break_while(start_time)
+        
+        # starting cluster
+        time.sleep(5)
+        start_cluster(cluster_id, workspace_id)
+        time.sleep(5)
+        while not match_status("running", status):
+            time.sleep(10)
+            status = get_cluster_status(cluster_id, workspace_id)
+            check_and_break_while(start_time)
         print("Cluster is ready")
     else:
         raise ProcessLookupError(f'Cluster was in unexpected state ({status}) please reach out to support')
@@ -576,7 +762,7 @@ def create_context(context_name:str, cluster_id: str = None, workspace_id: str =
 
 def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find: Union[str, int] = 0, context_name: str = None, force_restart: bool = False):
     """
-    Allows user to make one call to spin up / acces the cluster and create a context with one function.
+    Allows user to make call to spin up / access the cluster and create a context with one function.
     """
     workspaceID = get_workspace_id(workspace_id_find)
     clusterID = get_cluster_id(find=cluster_id_find, workspace_id=workspaceID)
@@ -590,7 +776,6 @@ def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find:
     context_text = create_context(context_name=context_name, cluster_id=clusterID, workspace_id=workspaceID)
     print("Context generated")
     return context_text
-
 
 def inspect_context(context_id: str):
     """
