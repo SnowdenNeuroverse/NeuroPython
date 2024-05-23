@@ -41,7 +41,7 @@ def check_and_break_while(start_time:datetime.datetime, max_time:int=1020, raise
     elif check_time > max_time and not raise_error:
         return True
     elif check_time <= max_time and raise_error:
-        return None
+        return False
     elif check_time <= max_time and not raise_error:
         return False
     else:
@@ -69,7 +69,7 @@ def _(match: list, status: str) -> bool:
         return any([status.lower() in match_i.lower() or match_i.lower() in status.lower() for match_i in match])
     else:
         raise ValueError(f"match_status input `status` must be str, got {type(status)}")
-  
+
 def import_table(dataframe_name: str, data_store_name: str, table_name: str, partition_paths: "List[str]" = ["'/'"], sql_query: str = None, ignore_non_existing_partition_paths: bool = None):
     """
     Neuroverse datalake data to be used in the pyspark script.
@@ -320,7 +320,7 @@ def _run_job_wrapper(job_id: str, run_name: str) -> Tuple[bool, str]:
                 return False, "Unable to find RunId in run history."
             run_status = func_run_info['Status'].lower()
             if match_status('running', run_status):
-                if not check_and_break_while(start_time, max_time=900*time_counter, raise_error=False):
+                if check_and_break_while(start_time, max_time=900*time_counter, raise_error=False, process=f"Run {run_name}"):
                     time_counter+=1
                     print(f"Run {run_name} has taken {15*time_counter} minutes and is continuing, if this is unexpected please verify manually.")
             elif match_status('failed', run_status):
@@ -776,7 +776,6 @@ def initialize_notebook(cluster_id_find: Union[str, int] = 0, workspace_id_find:
     context_text = create_context(context_name=context_name, cluster_id=clusterID, workspace_id=workspaceID)
     print("Context generated")
     return context_text
-
 
 def inspect_context(context_id: str):
     """
