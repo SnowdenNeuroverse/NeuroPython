@@ -6,6 +6,8 @@ Spark Manager in Neuroverse.
 from neuro_python.neuro_call import neuro_call
 import uuid
 import os
+import re
+import textwrap
 import datetime
 import pandas as pd
 pd.set_option('display.max_rows', None)
@@ -210,6 +212,76 @@ def get_job_id(name_substr: str, workspace_id: str = None, cluster_id: str = Non
             raise ValueError(f'No job found with given {name_substr} substring, please confirm job name.')
     else:
         raise TypeError(f'The look up arg `name_substr` must be a string, got {type(name_substr)}')
+
+def list_jobs_by_name(look_up: str,
+                      regex: bool = False,
+                      regex_flag: re.RegexFlag = 0,
+                      print_schedules: bool = False,
+                      print_runs: bool = False,
+                      workspace_id: str = None,
+                      cluster_id: str = None,
+                      jobs_max_returned: int = None,
+                      runs_max_returned: int = None,
+                      runs_submitted_by: str = None,
+                     ):
+    """
+    List the jobs submitted to spark manager, by a either regex or substring lookup. 
+    Additionally you can request additional information about schedules and/or runs associated with the jobs.
+    NOTE: max_returned applies to both runs and jobs.
+    """
+    # define generic text wrappers
+    preferredWidth = 150
+    subpreferredWidth = 120
+    run_prefix = "    Runs: "
+    run_wrapper = textwrap.TextWrapper(initial_indent=run_prefix, width=subpreferredWidth,
+                               subsequent_indent=' '*len(run_prefix))
+    sch_prefix = "    Schedules: "
+    sch_wrapper = textwrap.TextWrapper(initial_indent=sch_prefix, width=subpreferredWidth,
+                                       subsequent_indent=' '*len(sch_prefix))
+    
+    # API call for jobs and checking dict keys are still valid
+    available_jobs = list_jobs(workspace_id=workspace_id, cluster_id=cluster_id)
+    if any([False if "JobName" in job_i.keys() else True for job_i in available_jobs]):
+        raise KeyError("JobName does not exist in job return dicts. Please raise with Support.")
+    if any([False if "JobId" in job_i.keys() else True for job_i in available_jobs]):
+        raise KeyError("JobId does not exist in job return dicts. Please raise with Support.")
+    
+    # Perform look up, either through regex or naive substring. Truncate list by jobs_max_returned if provided.
+    if regex:
+        selected_jobs = [job_i for job_i in available_jobs if bool(re.search(look_up, job_i["JobName"], flags=regex_flag))]
+    else:
+        selected_jobs = [job_i for job_i in available_jobs if look_up in job_i["JobName"]]
+    if jobs_max_returned:
+        selected_jobs = selected_jobs[:jobs_max_returned]
+    
+    # Go through each job printing details, and schedules/runs if requested.
+    if len(selected_jobs)==0:
+        print(f"For look_up {look_up}, no jobs found.")  
+    else:
+        print(f"For look_up {look_up}, the following jobs were found:")
+    for job in selected_jobs:
+        prefix = str(job['JobName']) + ": "
+        wrapper = textwrap.TextWrapper(initial_indent=prefix, width=preferredWidth,
+                                   subsequent_indent=' '*len(prefix))
+        message = str(job)
+        print(wrapper.fill(message))
+        if print_schedules:
+            job_dets = get_job_details(job["JobId"])
+            if "Schedules" not in job_dets.keys():
+                raise KeyError("Schedules key not in get_job_details dicts. Please raise with Support.")
+            schedules = job_dets["Schedules"]
+            if len(schedules)==0:
+                pass
+            else:
+                sch_message = "\n".join([str(sch) for sch in schedules])
+                print(sch_wrapper.fill(sch_message))
+        if print_runs:
+            runs = list_runs(job_id=job["JobId"], submitted_by=runs_submitted_by, max_returned=runs_max_returned)
+            if len(runs)==0:
+                pass
+            else:
+                run_message = "\n".join([str(run) for run in runs]) 
+                print(run_wrapper.fill(run_message))
 
 def _run_job_wrapper(job_id: str, run_name: str) -> Tuple[bool, str]:
     """
