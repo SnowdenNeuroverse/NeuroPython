@@ -214,22 +214,25 @@ def get_job_id(name_substr: str, workspace_id: str = None, cluster_id: str = Non
         raise TypeError(f'The look up arg `name_substr` must be a string, got {type(name_substr)}')
 
 def list_jobs_by_name(look_up: str,
+                      return_dict: bool = False,
                       regex: bool = False,
                       regex_flag: re.RegexFlag = 0,
-                      print_schedules: bool = False,
-                      print_runs: bool = False,
+                      get_schedules: bool = False,
+                      get_runs: bool = False,
                       workspace_id: str = None,
                       cluster_id: str = None,
                       jobs_max_returned: int = None,
                       runs_max_returned: int = None,
                       runs_submitted_by: str = None,
-                     ):
+                     ) -> dict:
     """
-    List the jobs submitted to spark manager, by a either regex or substring lookup. 
+    Find the jobs submitted to spark manager, by a either regex or substring lookup.
+    If return_dict True, then dict is returned with JobId as key, otherwise results are printed. 
     Additionally you can request additional information about schedules and/or runs associated with the jobs.
     NOTE: max_returned applies to both runs and jobs.
     """
-    # define generic text wrappers
+    # define generic text wrappers and return_dict
+    return_output = {} if return_dict else None
     preferredWidth = 150
     subpreferredWidth = 120
     run_prefix = "    Runs: "
@@ -255,33 +258,45 @@ def list_jobs_by_name(look_up: str,
         selected_jobs = selected_jobs[:jobs_max_returned]
     
     # Go through each job printing details, and schedules/runs if requested.
-    if len(selected_jobs)==0:
-        print(f"For look_up {look_up}, no jobs found.")  
-    else:
-        print(f"For look_up {look_up}, the following jobs were found:")
+    if not return_dict:
+        if len(selected_jobs)==0:
+            print(f"For look_up {look_up}, no jobs found.")  
+        else:
+            print(f"For look_up {look_up}, the following jobs were found:")
     for job in selected_jobs:
-        prefix = str(job['JobName']) + ": "
-        wrapper = textwrap.TextWrapper(initial_indent=prefix, width=preferredWidth,
-                                   subsequent_indent=' '*len(prefix))
-        message = str(job)
-        print(wrapper.fill(message))
-        if print_schedules:
-            job_dets = get_job_details(job["JobId"])
+        job_name = str(job['JobName'])
+        job_id = str(job['JobId'])
+        if return_dict:
+            return_output[job_id] = job
+        else:
+            prefix = job_name + ": "
+            wrapper = textwrap.TextWrapper(initial_indent=prefix, width=preferredWidth,
+                                       subsequent_indent=' '*len(prefix))
+            print(wrapper.fill(str(job)))
+        if get_schedules:
+            try:
+                job_dets = get_job_details(job_id)
+            except:
+                print(f"Unable to find job reference for {job_name}")
             if "Schedules" not in job_dets.keys():
                 raise KeyError("Schedules key not in get_job_details dicts. Please raise with Support.")
             schedules = job_dets["Schedules"]
-            if len(schedules)==0:
-                pass
+            if return_dict:
+                return_output[job_id]["Schedules"] = schedules
             else:
                 sch_message = "\n".join([str(sch) for sch in schedules])
                 print(sch_wrapper.fill(sch_message))
-        if print_runs:
-            runs = list_runs(job_id=job["JobId"], submitted_by=runs_submitted_by, max_returned=runs_max_returned)
-            if len(runs)==0:
-                pass
+        if get_runs:
+            try:
+                runs = list_runs(job_id=job_id, submitted_by=runs_submitted_by, max_returned=runs_max_returned)
+            except:
+                print(f"Unable to find job reference for {job_name}")
+            if return_dict:
+                return_output[job_id]["Runs"] = runs
             else:
                 run_message = "\n".join([str(run) for run in runs]) 
                 print(run_wrapper.fill(run_message))
+    return return_output
 
 def _run_job_wrapper(job_id: str, run_name: str) -> Tuple[bool, str]:
     """
